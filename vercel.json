@@ -1,6 +1,7 @@
 {
   "version": 2,
   "name": "number-match-puzzle",
+  "outputDirectory": "web",
   "rewrites": [
     { "source": "/(.*)", "destination": "/$1" }
   ]
