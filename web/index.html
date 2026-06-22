@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>Number Match</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════
+       LEVEL SELECT
+  ═══════════════════════════════════════════ -->
+  <div id="screenLevelSelect" class="screen active">
+
+    <div class="ls-top">
+      <div class="ls-logo">
+        <span class="logo-num">1</span><span class="logo-plus">+</span><span class="logo-num">9</span>
+      </div>
+      <h1 class="ls-title">Number Match</h1>
+      <p class="ls-sub">Match numbers · Clear the board · Win!</p>
+    </div>
+
+    <div class="ls-how">
+      <div class="how-card">
+        <span class="how-icon">🔢</span>
+        <span>Same number<br><small>5 &amp; 5</small></span>
+      </div>
+      <div class="how-divider">OR</div>
+      <div class="how-card">
+        <span class="how-icon">🔟</span>
+        <span>Sum to 10<br><small>3 + 7</small></span>
+      </div>
+      <div class="how-divider">→</div>
+      <div class="how-card">
+        <span class="how-icon">✅</span>
+        <span>Must be<br><small>adjacent</small></span>
+      </div>
+    </div>
+
+    <div class="ls-section-label">Choose Level</div>
+    <div id="levelGrid" class="level-grid"></div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       GAME SCREEN
+  ═══════════════════════════════════════════ -->
+  <div id="screenGame" class="screen">
+
+    <div class="header">
+      <button id="btnBack" class="btn-icon" aria-label="Back">&#8592;</button>
+      <span id="lblLevel" class="lbl-level">Level 1</span>
+      <div class="header-badges">
+        <span id="lblAddRow" class="badge badge-addrow">+Row <b>6</b></span>
+        <span id="lblMatched" class="badge badge-match">✓ <b>0</b></span>
+        <button id="btnHint" class="badge badge-hint hint-locked" title="Hint">
+          💡 <b id="hintCount">3</b>
+        </button>
+      </div>
+    </div>
+
+    <div id="statusBar" class="status-bar hidden"></div>
+
+    <div id="scrollArea" class="scroll-area">
+      <div id="grid" class="grid"></div>
+    </div>
+
+    <div class="footer">
+      <button id="btnAddRowAction" class="btn-addrow">
+        <span class="btn-addrow-icon">＋</span>
+        <span>Add Row</span>
+      </button>
+      <button id="btnHintAction" class="btn-hint-foot hint-locked" aria-label="Hint">💡</button>
+      <button id="btnRestart"    class="btn-restart"    aria-label="Restart">↺</button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       WIN OVERLAY
+  ═══════════════════════════════════════════ -->
+  <div id="overlayWin" class="overlay hidden">
+    <div class="overlay-box win-box">
+      <div class="win-stars">⭐⭐⭐</div>
+      <h2>Level Complete!</h2>
+      <p id="winMsg"></p>
+      <!-- countdown bar fills while auto-advancing -->
+      <div class="win-countdown"><div id="winCountdownBar" class="win-countdown-bar"></div></div>
+      <div class="overlay-actions">
+        <button id="btnNextLevel" class="btn-primary">Next Level →</button>
+        <button id="btnWinMenu"   class="btn-secondary">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       GAME OVER OVERLAY
+  ═══════════════════════════════════════════ -->
+  <div id="overlayOver" class="overlay hidden">
+    <div class="overlay-box">
+      <div class="overlay-emoji">😓</div>
+      <h2>Out of Moves</h2>
+      <p>All Add Row attempts used up. Give it another shot!</p>
+      <div class="overlay-actions">
+        <button id="btnRetry"    class="btn-primary">Try Again</button>
+        <button id="btnOverMenu" class="btn-secondary">Menu</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script src="engine.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

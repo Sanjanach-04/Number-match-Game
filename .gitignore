@@ -1,0 +1,20 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Vercel
+.vercel/
+
+# Android build outputs
+android/app/build/
+android/build/
+android/.gradle/
+*.apk
+*.aab
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
