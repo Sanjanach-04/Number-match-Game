@@ -4,115 +4,88 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
   <title>Number Match</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-
 <div id="app">
 
-  <!-- ═══════════════════════════════════════════
-       LEVEL SELECT
-  ═══════════════════════════════════════════ -->
-  <div id="screenLevelSelect" class="screen active">
-
+  <!-- ══════════════ LEVEL SELECT ══════════════ -->
+  <div id="screenLS" class="screen active">
     <div class="ls-top">
-      <div class="ls-logo">
-        <span class="logo-num">1</span><span class="logo-plus">+</span><span class="logo-num">9</span>
+      <div class="ls-brand">
+        <span class="brand-tile red">1</span>
+        <span class="brand-plus">+</span>
+        <span class="brand-tile gold">9</span>
       </div>
-      <h1 class="ls-title">Number Match</h1>
-      <p class="ls-sub">Match numbers · Clear the board · Win!</p>
+      <h1>Number Match</h1>
+      <p class="tagline">Tap · Match · Clear · Win</p>
     </div>
 
-    <div class="ls-how">
-      <div class="how-card">
-        <span class="how-icon">🔢</span>
-        <span>Same number<br><small>5 &amp; 5</small></span>
-      </div>
-      <div class="how-divider">OR</div>
-      <div class="how-card">
-        <span class="how-icon">🔟</span>
-        <span>Sum to 10<br><small>3 + 7</small></span>
-      </div>
-      <div class="how-divider">→</div>
-      <div class="how-card">
-        <span class="how-icon">✅</span>
-        <span>Must be<br><small>adjacent</small></span>
-      </div>
+    <div class="how-row">
+      <div class="how-pill"><span class="how-num">5</span><span class="how-eq">=</span><span class="how-num">5</span><span class="how-lbl">Same</span></div>
+      <div class="how-sep">or</div>
+      <div class="how-pill"><span class="how-num">3</span><span class="how-eq">+</span><span class="how-num">7</span><span class="how-lbl">Sum 10</span></div>
+      <div class="how-sep">+</div>
+      <div class="how-pill how-pill-adj"><span class="how-icon">↔</span><span class="how-lbl">Adjacent</span></div>
     </div>
 
-    <div class="ls-section-label">Choose Level</div>
+    <p class="ls-label">SELECT LEVEL</p>
     <div id="levelGrid" class="level-grid"></div>
-
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       GAME SCREEN
-  ═══════════════════════════════════════════ -->
+  <!-- ══════════════ GAME ══════════════════════ -->
   <div id="screenGame" class="screen">
-
-    <div class="header">
-      <button id="btnBack" class="btn-icon" aria-label="Back">&#8592;</button>
-      <span id="lblLevel" class="lbl-level">Level 1</span>
-      <div class="header-badges">
-        <span id="lblAddRow" class="badge badge-addrow">+Row <b>6</b></span>
-        <span id="lblMatched" class="badge badge-match">✓ <b>0</b></span>
-        <button id="btnHint" class="badge badge-hint hint-locked" title="Hint">
-          💡 <b id="hintCount">3</b>
-        </button>
+    <div class="hdr">
+      <button id="btnBack" class="ico-btn">&#8592;</button>
+      <span id="lblLevel" class="hdr-level">Level 1</span>
+      <div class="hdr-pills">
+        <span id="lblAddRow" class="pill pill-gold">+Row <b>6</b></span>
+        <span id="lblMatched" class="pill pill-green">✓ <b>0</b></span>
+        <button id="btnHint" class="pill pill-hint hint-hidden">💡<b id="hintCount">3</b></button>
       </div>
     </div>
 
-    <div id="statusBar" class="status-bar hidden"></div>
+    <div id="toast" class="toast hidden"></div>
 
     <div id="scrollArea" class="scroll-area">
       <div id="grid" class="grid"></div>
     </div>
 
-    <div class="footer">
-      <button id="btnAddRowAction" class="btn-addrow">
-        <span class="btn-addrow-icon">＋</span>
-        <span>Add Row</span>
+    <div class="bar">
+      <button id="btnAdd" class="btn-add">
+        <span class="btn-add-plus">＋</span> Add Row
       </button>
-      <button id="btnHintAction" class="btn-hint-foot hint-locked" aria-label="Hint">💡</button>
-      <button id="btnRestart"    class="btn-restart"    aria-label="Restart">↺</button>
+      <button id="btnHintFoot" class="bar-ico hint-hidden" aria-label="Hint">💡</button>
+      <button id="btnRestart" class="bar-ico bar-ico-purple" aria-label="Restart">↺</button>
     </div>
-
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       WIN OVERLAY
-  ═══════════════════════════════════════════ -->
+  <!-- ══════════════ WIN ═══════════════════════ -->
   <div id="overlayWin" class="overlay hidden">
-    <div class="overlay-box win-box">
+    <div class="card">
       <div class="win-stars">⭐⭐⭐</div>
-      <h2>Level Complete!</h2>
-      <p id="winMsg"></p>
-      <!-- countdown bar fills while auto-advancing -->
-      <div class="win-countdown"><div id="winCountdownBar" class="win-countdown-bar"></div></div>
-      <div class="overlay-actions">
-        <button id="btnNextLevel" class="btn-primary">Next Level →</button>
-        <button id="btnWinMenu"   class="btn-secondary">Menu</button>
-      </div>
+      <h2 class="card-title">Level Complete!</h2>
+      <p id="winMsg" class="card-sub"></p>
+      <div class="countdown-wrap"><div id="cbar" class="cbar"></div></div>
+      <button id="btnNext" class="btn-cta">Next Level →</button>
+      <button id="btnWinMenu" class="btn-ghost">Menu</button>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       GAME OVER OVERLAY
-  ═══════════════════════════════════════════ -->
+  <!-- ══════════════ GAME OVER ════════════════ -->
   <div id="overlayOver" class="overlay hidden">
-    <div class="overlay-box">
-      <div class="overlay-emoji">😓</div>
-      <h2>Out of Moves</h2>
-      <p>All Add Row attempts used up. Give it another shot!</p>
-      <div class="overlay-actions">
-        <button id="btnRetry"    class="btn-primary">Try Again</button>
-        <button id="btnOverMenu" class="btn-secondary">Menu</button>
-      </div>
+    <div class="card">
+      <div class="over-emoji">😓</div>
+      <h2 class="card-title">Out of Moves</h2>
+      <p class="card-sub">All Add Row attempts used. Give it another go!</p>
+      <button id="btnRetry" class="btn-cta">Try Again</button>
+      <button id="btnOverMenu" class="btn-ghost">Menu</button>
     </div>
   </div>
 
-</div><!-- #app -->
-
+</div>
 <script src="engine.js"></script>
 <script src="game.js"></script>
 </body>
