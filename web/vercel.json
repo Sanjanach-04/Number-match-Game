@@ -1,7 +1,10 @@
 {
   "version": 2,
   "name": "number-match-puzzle",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/engine.js", "dest": "/engine.js" },
+    { "src": "/game.js", "dest": "/game.js" },
+    { "src": "/style.css", "dest": "/style.css" }
   ]
 }
