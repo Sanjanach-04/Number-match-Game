@@ -117,6 +117,17 @@ body{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',sans-serif;display:
     <button class="bs" id="bOM">Menu</button>
   </div>
 </div>
+
+<!-- Add Row confirmation dialog -->
+<div class="ov" id="oConfirm">
+  <div class="ov-box">
+    <div class="ov-ic">&#128269;</div>
+    <div class="ov-ti" style="color:#e94560">Matches Available!</div>
+    <div class="ov-su">There are still valid moves on the board. Are you sure you want to add a number?</div>
+    <button class="bp" id="bConfirmYes">Yes, Add Number</button>
+    <button class="bs" id="bConfirmNo">No, I'll Keep Looking</button>
+  </div>
+</div>
 </div>
 <script>
 /* ── Sound engine (Web Audio API — no external files needed) ── */
@@ -446,8 +457,20 @@ function clearHintClass(){
 }
 </script>
 <script>
-/* ── Add Number: adds ONE number that matches with a remaining unmatched number ── */
+/* ── Add Number with intercept ── */
 function doAddRow(){
+  if(arUsed>=MAXAR) return;
+  // Scan board for any valid matches
+  if(anyMatch()){
+    // Matches exist — show confirmation dialog, pause the action
+    showOv('oConfirm');
+  } else {
+    // Player is genuinely stuck — add immediately
+    doAddActual();
+  }
+}
+
+function doAddActual(){
   if(arUsed>=MAXAR) return;
   clearHintClass(); hA=-1; hB=-1;
 
@@ -455,59 +478,42 @@ function doAddRow(){
   else dryPresses=0;
   matchesSinceLastAdd=0;
 
-  // Collect active (unmatched) cells
   var ac=[];
   for(var i=0;i<board.length;i++) if(!board[i].m) ac.push(i);
   if(!ac.length) return;
 
-  // Strategy: find a cell that has NO existing adjacent match partner.
-  // Add that cell's same value — the new appended cell will be
-  // adjacent to it via the flat linear scan (wrap-around).
-  var val;
-
-  // Check each active cell: does it have any valid match right now?
+  // Find orphaned cells — no value-compatible partner anywhere on board
   var noMatchCells=[];
   for(var i=0;i<ac.length;i++){
     var found=false;
     for(var j=0;j<ac.length;j++){
-      if(i!==j){
-        var a=ac[i],b=ac[j];
-        var va=board[a].v,vb=board[b].v;
-        // Value check only (adjacency will be created by appending)
-        if(va===vb||va+vb===10){found=true;break;}
-      }
+      if(i!==j){var va=board[ac[i]].v,vb=board[ac[j]].v;if(va===vb||va+vb===10){found=true;break;}}
     }
     if(!found) noMatchCells.push(ac[i]);
   }
 
+  var val;
   if(noMatchCells.length>0){
-    // Add the same value as the first truly orphaned cell
-    val = board[noMatchCells[0]].v;
+    val=board[noMatchCells[0]].v; // duplicate the orphaned number
   } else {
-    // All values already have a value-compatible partner somewhere.
-    // Add the value that appears least often (rarest = hardest to match = most helpful to duplicate)
+    // All have value-pairs; add the rarest value
     var freq={};
-    for(var i=0;i<ac.length;i++){
-      var v=board[ac[i]].v;
-      freq[v]=(freq[v]||0)+1;
-    }
-    val = board[ac[0]].v;
-    var minF = freq[val]||99;
-    for(var v in freq){ if(+freq[v]<minF){ minF=+freq[v]; val=+v; } }
+    for(var i=0;i<ac.length;i++){var v=board[ac[i]].v;freq[v]=(freq[v]||0)+1;}
+    val=board[ac[0]].v;
+    var minF=freq[val]||99;
+    for(var v in freq){if(+freq[v]<minF){minF=+freq[v];val=+v;}}
   }
 
-  // Append this single number to the board array
   var newIdx=board.length;
-  board.push({v:val, m:false});
+  board.push({v:val,m:false});
   arUsed++;
 
-  // Add the cell element to the grid
   var el=mkCell(newIdx,true);
   ge('grid').appendChild(el);
   sndAdd();
-  setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
 
-  // Check game over after adding
+  updateBadges();
+  setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
   if(arUsed>=MAXAR&&!anyMatch()) setTimeout(function(){showOv('oOver')},400);
 }
 
@@ -552,6 +558,9 @@ ge('bNext').onclick=function(){hideOv('oWin');if(autoTid){clearInterval(autoTid)
 ge('bWM').onclick=goMenu;
 ge('bRetry').onclick=restart;
 ge('bOM').onclick=goMenu;
+// Confirm dialog: Yes = proceed with adding, No = cancel
+ge('bConfirmYes').onclick=function(){hideOv('oConfirm');doAddActual();};
+ge('bConfirmNo').onclick=function(){hideOv('oConfirm');/* player goes back to find the match */};
 
 /* ── Boot ── */
 buildLS();
