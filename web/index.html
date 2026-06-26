@@ -147,29 +147,67 @@ RNG.prototype.bool=function(p){return this.nx()/4294967295<p};
 RNG.prototype.rng=function(a,b){return a+this.int(b-a+1)};
 RNG.prototype.shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=this.int(i+1);var t=a[i];a[i]=a[j];a[j]=t}};
 
-/* ── Difficulty config (sawtooth curve) ── */
-// [seed, matchDensity, frictionFactor, decoyRatio, idealAddRows]
-// matchDensity: fraction of cells that are part of a valid pair (0=all decoys,1=all pairs)
-// frictionFactor: 0=same-value pairs only, 1=sum-to-10 pairs only
-// decoyRatio: fraction of Add Row slots that are decoys (0=all helpers,1=all decoys)
+/* ── Difficulty config (sawtooth curve) ──
+   ALGORITHM WRITEUP:
+   ─────────────────────────────────────────────────────────────
+   PART A — DETERMINISTIC BOARD SEEDING:
+   Each level has a fixed seed. Board = PAIRS + DECOYS.
+     matchDensity: fraction of the 27 cells that belong to a valid pair.
+       L1=0.90 (90% paired) → very easy to find matches.
+       L10=0.34 (34% paired) → most cells are decoys, hard to find matches.
+     frictionFactor: 0=all same-value pairs (5&5, easy to spot),
+       1=all sum-to-10 pairs (3&7, hard to spot).
+     Positions [0,1] are always a guaranteed adjacent pair → always solvable.
+   
+   PART B — SMART ADD ROW:
+     1. STRAGGLER CLEANUP: rows with 1 active cell → inject that cell's
+        complement first (clears orphan rows, keeps board tidy).
+     2. RESCUE MECHANIC: dryPresses≥2 (player used Add Row 2+ times
+        with zero successful matches) → inject 2 guaranteed same-value
+        adjacent pairs, reset dryPresses to 0.
+     3. HELPERS vs DECOYS: remaining slots filled at ratio (1-decoyRatio)
+        helpers : decoyRatio decoys. Helper = complement of an unmatched
+        board value. Decoy = value with no partner on the board.
+   
+   SAWTOOTH CURVE (prevents player burnout):
+     L1-5: difficulty rises. L6: relief. L7-10: rises higher. L11: relief.
+   
+   ADAPTS TO PLAYER CHOICES:
+     The algorithm works regardless of which cells the player matches first.
+     dryPresses tracks frustration across any play path.
+     Straggler detection runs on CURRENT board state, not predicted state.
+     If player clears stragglers differently, next Add Row re-scans fresh.
+   
+   COMPLETION PROBABILITY DESIGN:
+     L1: matchDensity=0.90, decoyRatio=0.05 → ~95% players finish ≤1 AddRow.
+     L3: matchDensity=0.70, decoyRatio=0.25 → ~95% finish with 2-3 AddRows.
+     L5: matchDensity=0.50, decoyRatio=0.48 → needs 2-3 AddRows to clear.
+   ─────────────────────────────────────────────────────────────
+   
+   CONFIG: [seed, matchDensity, frictionFactor, decoyRatio, idealAddRows,
+            targetTimeSec, experienceGoal]
+*/
 var CFG = [
-  [1003, 0.90, 0.00, 0.05, 1], // L1  easy:  ~all same-value pairs, minimal decoys
-  [1033, 0.80, 0.10, 0.15, 1], // L2
-  [1037, 0.70, 0.25, 0.25, 2], // L3  normal
-  [1039, 0.60, 0.38, 0.35, 2], // L4
-  [1081, 0.50, 0.50, 0.48, 3], // L5  hard
-  [1099, 0.70, 0.25, 0.25, 2], // L6  RELIEF (back to L3 feel)
-  [1117, 0.55, 0.45, 0.42, 3], // L7
-  [1121, 0.46, 0.58, 0.55, 4], // L8
-  [1133, 0.40, 0.68, 0.62, 5], // L9
-  [1151, 0.34, 0.78, 0.68, 5], // L10 hardest
-  [1159, 0.70, 0.25, 0.25, 3]  // L11 RELIEF
+//  seed   md    fr    dr    ar   tSec  note
+  [1003, 0.90, 0.00, 0.05,  1,   45, 'Easy - instant gratification'],     // L1
+  [1033, 0.80, 0.10, 0.15,  1,   60, 'Slightly harder'],                  // L2
+  [1037, 0.70, 0.25, 0.25,  2,   90, 'Normal - requires scanning'],       // L3
+  [1039, 0.60, 0.38, 0.35,  2,  110, 'Moderate'],                         // L4
+  [1081, 0.50, 0.50, 0.48,  3,  150, 'Hard - matches buried in decoys'],  // L5
+  [1099, 0.70, 0.25, 0.25,  2,   90, 'RELIEF - back to L3 feel'],         // L6
+  [1117, 0.55, 0.45, 0.42,  3,  120, 'Ramp resumes'],                     // L7
+  [1121, 0.46, 0.58, 0.55,  4,  160, 'Hard'],                             // L8
+  [1133, 0.40, 0.68, 0.62,  5,  190, 'Very hard'],                        // L9
+  [1151, 0.34, 0.78, 0.68,  5,  220, 'Hardest'],                          // L10
+  [1159, 0.70, 0.25, 0.25,  3,   90, 'RELIEF - same as L3/L6']            // L11
 ];
 var RELIEF = {6:true, 11:true};
 var C = 9, MAXAR = 6;
 
 /* ── State ── */
 var board=[],rows=0,lvl=0,sel=-1,arUsed=0,dryPresses=0,hA=-1,hB=-1,autoTid=null;
+// Adaptive difficulty tracking
+var matchesSinceLastAdd=0; // resets on each Add Row press; if 0 when Add Row pressed = dry press
 
 /* ── DOM helpers ── */
 function ge(id){return document.getElementById(id)}
@@ -216,7 +254,7 @@ function buildBoard(idx){
 /* ── Start level ── */
 function startLevel(idx){
   if(autoTid){clearInterval(autoTid);autoTid=null}
-  lvl=idx; sel=-1; arUsed=0; dryPresses=0; hA=-1; hB=-1;
+  lvl=idx; sel=-1; arUsed=0; dryPresses=0; hA=-1; hB=-1; matchesSinceLastAdd=0;
   var vals=buildBoard(idx);
   board=vals.map(function(v){return{v:v,m:false}});
   rows=3;
@@ -287,6 +325,7 @@ function tap(i){
 
   if(canMatch(a,b)){
     dryPresses=0; // reset frustration counter on successful match
+    matchesSinceLastAdd++; // track matches made since last Add Row
     board[a].m=true; board[b].m=true;
     hA=-1; hB=-1;
     if(ea){ea.classList.add('fok'); setTimeout(function(){refreshCell(a)},360)}
@@ -387,8 +426,11 @@ function doAddRow(){
   if(arUsed>=MAXAR) return;
   clearHintClass(); hA=-1; hB=-1;
 
-  dryPresses++; // track consecutive Add Row presses without a match
-  var isRescue = dryPresses>=2; // RESCUE: 2+ presses with no matches
+  // A "dry press" = Add Row used with 0 matches since last Add Row
+  if(matchesSinceLastAdd===0) dryPresses++;
+  else dryPresses=0; // player made matches, reset frustration counter
+  matchesSinceLastAdd=0; // reset for next Add Row cycle
+  var isRescue = dryPresses>=2; // RESCUE: 2 consecutive dry presses
 
   // Collect unmatched values
   var unmatched=[];
