@@ -419,7 +419,7 @@ function clearHintClass(){
 }
 </script>
 <script>
-/* ── Add Row: appends ONE matching number (not a full row) ── */
+/* ── Add Number: adds ONE number that can match with a remaining number ── */
 function doAddRow(){
   if(arUsed>=MAXAR) return;
   clearHintClass(); hA=-1; hB=-1;
@@ -428,35 +428,48 @@ function doAddRow(){
   else dryPresses=0;
   matchesSinceLastAdd=0;
 
-  // Collect all unmatched values
-  var unmatched=[];
-  for(var i=0;i<board.length;i++) if(!board[i].m) unmatched.push(board[i].v);
-  if(!unmatched.length) return;
+  // Find which active cells currently have NO valid match on the board
+  // Pick one of those "stuck" cells and add its exact match complement
+  var stuck=[];
+  var ac=[];
+  for(var i=0;i<board.length;i++) if(!board[i].m) ac.push(i);
 
-  // Pick ONE value that already exists on the board
-  // (same value = guaranteed match with something already there)
-  var val;
-  if(dryPresses>=2){
-    // Rescue: pick the most frequent unmatched value (easiest to find a match for)
-    dryPresses=0;
-    var freq={};
-    for(var i=0;i<unmatched.length;i++) freq[unmatched[i]]=(freq[unmatched[i]]||0)+1;
-    val=unmatched[0];
-    for(var v in freq) if(freq[v]>freq[val]) val=+v;
-  } else {
-    // Normal: just pick any unmatched value
-    var rng=new RNG(arUsed*1009+lvl*37+7);
-    val=unmatched[rng.int(unmatched.length)];
+  for(var i=0;i<ac.length;i++){
+    var hasMatch=false;
+    for(var j=0;j<ac.length;j++){
+      if(i!==j && canMatch(ac[i],ac[j])){ hasMatch=true; break; }
+    }
+    if(!hasMatch) stuck.push(ac[i]);
   }
 
-  // Add just this ONE cell to the board
+  var val;
+  if(stuck.length>0){
+    // Add the complement of the first stuck cell
+    // complement = same value (simplest match) OR 10-value
+    var stuckVal=board[stuck[0]].v;
+    // Prefer same-value so it's obvious; use sum-to-10 only if same would duplicate decoy
+    val = stuckVal; // same value = guaranteed match with stuck cell
+  } else if(ac.length>0){
+    // All cells already have a match — add a copy of any unmatched value
+    // Pick the one that appears only once (rarest, most useful)
+    var freq={};
+    for(var i=0;i<ac.length;i++){
+      var v=board[ac[i]].v;
+      freq[v]=(freq[v]||0)+1;
+    }
+    var rarest=board[ac[0]].v, minFreq=freq[board[ac[0]].v];
+    for(var v in freq){ if(freq[v]<minFreq){ minFreq=freq[v]; rarest=+v; } }
+    val=rarest;
+  } else {
+    return; // board is cleared
+  }
+
+  // Add this single number to the end of the board
   var newIdx=board.length;
-  var newRow=board[newIdx-1]?board[newIdx-1].row+1:0; // logical row of this cell
   board.push({v:val, m:false});
-  // We don't track rows strictly for single cells — just append
   arUsed++;
 
-  // Add the single cell element to the grid
+  // Append it to the grid
   var g=ge('grid');
   var el=mkCell(newIdx,true);
   g.appendChild(el);
