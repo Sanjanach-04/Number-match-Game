@@ -334,14 +334,12 @@ function tap(i){
     setTimeout(function(){
       if(allDone()){showWin();return}
       if(!anyMatch()&&arUsed>=MAXAR){showOv('oOver');return}
-      // No moves but Add Row still available — show hint automatically
-      if(!anyMatch()) doHint();
+      if(!anyMatch()){return} // no moves — player must tap Add Row themselves
     },380);
   } else {
     if(ea){ea.classList.add('ferr');setTimeout(function(){ea.classList.remove('ferr')},380)}
     if(eb){eb.classList.add('ferr');setTimeout(function(){eb.classList.remove('ferr')},380)}
-    // Show hint after wrong attempt
-    doHint();
+    // wrong attempt — no auto hint, player clicks Hint button themselves
   }
 }
 
@@ -496,11 +494,6 @@ function doAddRow(){
   appendRows(from);
   updateBadges();
   setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
-
-  // After adding row, show a hint automatically
-  setTimeout(function(){
-    if(hA<0) doHint();
-  },150);
 
   if(arUsed>=MAXAR&&!anyMatch()) setTimeout(function(){showOv('oOver')},400);
 }
