@@ -419,48 +419,33 @@ function clearHintClass(){
 }
 </script>
 <script>
-/* ── Add Row (rescue-first: always helps the player) ── */
+/* ── Add Row: appends copies of unmatched numbers (always helpful) ── */
 function doAddRow(){
   if(arUsed>=MAXAR) return;
   clearHintClass(); hA=-1; hB=-1;
 
-  // Dry press tracking for rescue
   if(matchesSinceLastAdd===0) dryPresses++;
   else dryPresses=0;
   matchesSinceLastAdd=0;
 
-  // Collect ALL currently unmatched values (these are the numbers the player still needs to clear)
+  // Collect all unmatched values still on the board
   var unmatched=[];
   for(var i=0;i<board.length;i++) if(!board[i].m) unmatched.push(board[i].v);
 
+  // Build new row = copy of unmatched values (cycled to fill 9 slots)
+  // Every number added has a guaranteed match partner already on the board
   var newRow=[];
-  var rng=new RNG(arUsed*1009+lvl*37+7);
+  for(var c=0;c<C;c++) newRow.push(unmatched[c % unmatched.length]);
 
+  // If rescue (2 dry presses): put first two pairs as adjacent same-value at front
   if(dryPresses>=2){
-    // RESCUE: inject 4 obvious same-value pairs so player always has immediate matches
     dryPresses=0;
-    var pool=unmatched.slice(); rng.shuffle(pool);
-    // Pick up to 4 distinct values from unmatched, place as adjacent pairs
-    var used={}, pairs=[];
-    for(var i=0;i<pool.length&&pairs.length<4;i++){
-      if(!used[pool[i]]){used[pool[i]]=true;pairs.push(pool[i]);}
-    }
-    // Fill with pairs: [v,v, v,v, ...] then random unmatched
-    for(var i=0;i<pairs.length&&newRow.length+1<C;i++){
-      newRow.push(pairs[i]); newRow.push(pairs[i]);
-    }
-    while(newRow.length<C){
-      newRow.push(unmatched[rng.int(unmatched.length)]);
-    }
-  } else {
-    // NORMAL: copy the unmatched values themselves so each new cell has a partner on the board
-    // The reference game adds copies of remaining numbers — guarantees matches exist
-    var pool=unmatched.slice(); rng.shuffle(pool);
-    for(var i=0;i<C;i++){
-      newRow.push(pool[i % pool.length]);
-    }
-    // Shuffle the row so matches aren't all at predictable positions
-    rng.shuffle(newRow);
+    // Find a value that appears multiple times so it's an obvious same-value match
+    var freq={};
+    for(var i=0;i<unmatched.length;i++) freq[unmatched[i]]=(freq[unmatched[i]]||0)+1;
+    var best=unmatched[0];
+    for(var v in freq) if(freq[v]>=(freq[best]||0)) best=+v;
+    newRow[0]=best; newRow[1]=best; // guaranteed adjacent pair at the very front
   }
 
   var from=board.length;
