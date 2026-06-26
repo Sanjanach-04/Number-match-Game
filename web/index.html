@@ -86,13 +86,13 @@ body{background:#1a1a2e;color:#fff;font-family:'Segoe UI',sans-serif;display:fle
   <div class="hdr">
     <button class="hbk" id="bBack">&#8592;</button>
     <span class="hlv" id="lLv">Level 1</span>
-    <span class="bdg br" id="lRow">+Row:6</span>
+    <span class="bdg br" id="lRow">+Num:6</span>
     <span class="bdg bm" id="lMat">27 left</span>
     <button id="hBtn">&#128161; Hint</button>
   </div>
   <div class="sa" id="sa"><div id="grid"></div></div>
   <div class="ft">
-    <button class="badd" id="bAdd">&#65291; Add Row (6)</button>
+    <button class="badd" id="bAdd">&#65291; Add Number (6)</button>
     <div class="fic" id="hFic" title="Hint">&#128161;</div>
     <div class="fic" id="bRst" title="Restart">&#8635;</div>
   </div>
@@ -302,7 +302,7 @@ function updateBadges(){
   ge('lRow').textContent='+Row:'+(MAXAR-arUsed);
   ge('lMat').textContent=rem+' left';
   ge('bAdd').disabled=arUsed>=MAXAR;
-  ge('bAdd').textContent='\uFF0B Add Row ('+(MAXAR-arUsed)+')';
+  ge('bAdd').textContent='\uFF0B Add Number ('+(MAXAR-arUsed)+')';
 }
 
 /* ── Tap / match ── */
@@ -419,7 +419,7 @@ function clearHintClass(){
 }
 </script>
 <script>
-/* ── Add Row: appends copies of unmatched numbers (always helpful) ── */
+/* ── Add Row: appends ONE matching number (not a full row) ── */
 function doAddRow(){
   if(arUsed>=MAXAR) return;
   clearHintClass(); hA=-1; hB=-1;
@@ -428,31 +428,39 @@ function doAddRow(){
   else dryPresses=0;
   matchesSinceLastAdd=0;
 
-  // Collect all unmatched values still on the board
+  // Collect all unmatched values
   var unmatched=[];
   for(var i=0;i<board.length;i++) if(!board[i].m) unmatched.push(board[i].v);
+  if(!unmatched.length) return;
 
-  // Build new row = copy of unmatched values (cycled to fill 9 slots)
-  // Every number added has a guaranteed match partner already on the board
-  var newRow=[];
-  for(var c=0;c<C;c++) newRow.push(unmatched[c % unmatched.length]);
-
-  // If rescue (2 dry presses): put first two pairs as adjacent same-value at front
+  // Pick ONE value that already exists on the board
+  // (same value = guaranteed match with something already there)
+  var val;
   if(dryPresses>=2){
+    // Rescue: pick the most frequent unmatched value (easiest to find a match for)
     dryPresses=0;
-    // Find a value that appears multiple times so it's an obvious same-value match
     var freq={};
     for(var i=0;i<unmatched.length;i++) freq[unmatched[i]]=(freq[unmatched[i]]||0)+1;
-    var best=unmatched[0];
-    for(var v in freq) if(freq[v]>=(freq[best]||0)) best=+v;
-    newRow[0]=best; newRow[1]=best; // guaranteed adjacent pair at the very front
+    val=unmatched[0];
+    for(var v in freq) if(freq[v]>freq[val]) val=+v;
+  } else {
+    // Normal: just pick any unmatched value
+    var rng=new RNG(arUsed*1009+lvl*37+7);
+    val=unmatched[rng.int(unmatched.length)];
   }
 
-  var from=board.length;
-  for(var c=0;c<C;c++) board.push({v:newRow[c],m:false});
-  rows++; arUsed++;
+  // Add just this ONE cell to the board
+  var newIdx=board.length;
+  var newRow=board[newIdx-1]?board[newIdx-1].row+1:0; // logical row of this cell
+  board.push({v:val, m:false});
+  // We don't track rows strictly for single cells — just append
+  arUsed++;
 
-  appendRows(from);
+  // Add the single cell element to the grid
+  var g=ge('grid');
+  var el=mkCell(newIdx,true);
+  g.appendChild(el);
+
   updateBadges();
   setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
   if(arUsed>=MAXAR&&!anyMatch()) setTimeout(function(){showOv('oOver')},400);
