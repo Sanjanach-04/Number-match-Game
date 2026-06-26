@@ -8,25 +8,20 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:#1a1a2e;color:#fff;font-family:'Segoe UI',sans-serif;display:flex;justify-content:center;min-height:100vh}
 #app{width:100%;max-width:430px;height:100vh;position:relative;overflow:hidden}
-/* screens */
 .scr{display:none;flex-direction:column;position:absolute;top:0;left:0;right:0;bottom:0}
 .scr.on{display:flex}
-/* level select */
-#sLS{background:#1a1a2e;overflow-y:auto;align-items:center;padding:24px 16px 16px;gap:16px}
-.ls-logo{font-size:28px;font-weight:900;color:#f5a623;letter-spacing:1px}
-.ls-sub{font-size:13px;color:#888}
-.ls-rules{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:12px;color:#aaa;text-align:center}
-.ls-rules b{color:#e94560}
-.ls-rl{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#666;align-self:flex-start}
+#sLS{background:#1a1a2e;overflow-y:auto;align-items:center;padding:24px 16px 16px;gap:14px}
+.ls-logo{font-size:26px;font-weight:900;color:#f5a623}
+.ls-sub{font-size:13px;color:#888;text-align:center}
+.ls-rl{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555;align-self:flex-start}
 .lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
-.lb{background:#16213e;border:2px solid #0f3460;border-radius:12px;padding:16px 6px;cursor:pointer;text-align:center;position:relative;overflow:hidden;transition:background .15s,transform .1s}
-.lb:hover{background:#1c2d50}.lb:active{transform:scale(.94)}
-.lb::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#e94560;border-radius:12px 12px 0 0}
+.lb{background:#16213e;border:2px solid #0f3460;border-radius:10px;padding:16px 6px;cursor:pointer;text-align:center;position:relative;overflow:hidden;transition:background .15s,transform .1s}
+.lb:hover{background:#1c2d50}.lb:active{transform:scale(.93)}
+.lb::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#e94560;border-radius:10px 10px 0 0}
 .lb.relief::before{background:#f5a623}
-.lb .ln{font-size:24px;font-weight:900;color:#fff;display:block}
+.lb .ln{font-size:22px;font-weight:900;color:#fff;display:block}
 .lb.relief .ln{color:#f5a623}
-.lb .le{position:absolute;top:4px;right:4px;font-size:9px;font-weight:900;background:#f5a623;color:#000;border-radius:4px;padding:1px 4px}
-/* game screen */
+.lb .le{position:absolute;top:4px;right:4px;font-size:9px;font-weight:900;background:#f5a623;color:#000;border-radius:3px;padding:1px 4px}
 #sG{background:#1a1a2e;flex-direction:column}
 .hdr{background:#16213e;padding:9px 11px;display:flex;align-items:center;gap:7px;flex-shrink:0;border-bottom:1px solid #0f3460}
 .hbk{background:none;border:none;color:#e94560;font-size:20px;cursor:pointer;padding:2px 8px;border-radius:6px;line-height:1}
@@ -35,10 +30,8 @@ body{background:#1a1a2e;color:#fff;font-family:'Segoe UI',sans-serif;display:fle
 .bdg{padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .bdg-r{background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.4)}
 .bdg-m{background:rgba(46,213,115,.15);color:#2ed573;border:1px solid rgba(46,213,115,.35)}
-/* hint button — always present, toggled via display */
-#hintBtn{background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.4);color:#f5a623;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;display:none}
-#hintBtn:hover{background:rgba(245,166,35,.3)}
-/* grid */
+#hBtn{background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.5);color:#f5a623;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;display:none;white-space:nowrap}
+#hBtn:hover{background:rgba(245,166,35,.3)}
 .sa{flex:1;overflow-y:auto;padding:8px 7px;-webkit-overflow-scrolling:touch}
 .sa::-webkit-scrollbar{width:3px}
 .sa::-webkit-scrollbar-thumb{background:#0f3460;border-radius:2px}
@@ -46,453 +39,399 @@ body{background:#1a1a2e;color:#fff;font-family:'Segoe UI',sans-serif;display:fle
 .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:clamp(11px,3.2vw,16px);font-weight:700;cursor:pointer;background:#16213e;border:1.5px solid #0f3460;color:#e0e0e0;transition:background .12s,transform .08s;user-select:none;-webkit-user-select:none}
 .cell:hover:not(.cm):not(.cs){border-color:#e94560}
 .cell:active:not(.cm){transform:scale(.88)}
-.cs{background:#e94560!important;border-color:#ff6b6b!important;color:#fff!important;transform:scale(1.07);z-index:5}
-.cm{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.07)!important;color:rgba(255,255,255,.18)!important;text-decoration:line-through;cursor:default;pointer-events:none}
-.ha,.hb{animation:hpulse .7s ease-in-out infinite alternate}
-@keyframes hpulse{from{background:#16213e;border-color:#f5a623}to{background:rgba(245,166,35,.35);border-color:#f5a623;box-shadow:0 0 8px rgba(245,166,35,.5)}}
-.fok{animation:fok .35s ease}
-@keyframes fok{0%{background:#2ed573}100%{background:#16213e}}
-.ferr{animation:ferr .35s ease}
-@keyframes ferr{0%,50%{background:#e94560}100%{background:#16213e}}
-.nr{animation:npop .28s cubic-bezier(.34,1.56,.64,1)}
-@keyframes npop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-/* footer */
+.cs{background:#e94560!important;border-color:#ff8888!important;color:#fff!important;transform:scale(1.08);z-index:5}
+.cm{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.06)!important;color:rgba(255,255,255,.15)!important;text-decoration:line-through;cursor:default;pointer-events:none}
+.ha{animation:hpa .8s ease-in-out infinite alternate!important;border-color:#f5a623!important}
+.hb{animation:hpb .8s ease-in-out infinite alternate!important;border-color:#f5a623!important}
+@keyframes hpa{from{background:#16213e}to{background:rgba(245,166,35,.4);box-shadow:0 0 10px rgba(245,166,35,.6)}}
+@keyframes hpb{from{background:#162e1e}to{background:rgba(46,213,115,.4);box-shadow:0 0 10px rgba(46,213,115,.6)}}
+.fok{animation:fok .4s ease forwards}
+@keyframes fok{0%{background:#2ed573;color:#fff}100%{background:#16213e;color:#e0e0e0}}
+.ferr{animation:ferr .4s ease forwards}
+@keyframes ferr{0%,45%{background:#e94560;color:#fff}100%{background:#16213e;color:#e0e0e0}}
+.nr{animation:npop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes npop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 .ft{background:#16213e;padding:9px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;border-top:1px solid #0f3460}
-.btn-add{flex:1;background:#e94560;border:none;color:#fff;border-radius:10px;padding:12px 8px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s}
-.btn-add:hover:not(:disabled){background:#c73652}
-.btn-add:disabled{background:#2a2a3a;color:#555;cursor:not-allowed}
-.fic{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:#ccc;border-radius:8px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:background .15s}
+.badd{flex:1;background:#e94560;border:none;color:#fff;border-radius:10px;padding:12px 8px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.badd:hover:not(:disabled){background:#c73652}
+.badd:disabled{background:#2a2a3a;color:#555;cursor:not-allowed}
+.fic{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:#ccc;border-radius:8px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;flex-shrink:0}
 .fic:hover{background:rgba(255,255,255,.14)}
-/* hint footer icon — toggled via display */
-#hintFic{display:none;color:#f5a623}
-/* overlays */
-.ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,10,30,.92);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px;gap:14px;z-index:100}
+#hFic{color:#f5a623;display:none}
+.ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,10,30,.93);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px;gap:14px;z-index:100}
 .ov.on{display:flex}
-.ov-icon{font-size:54px;line-height:1}
-.ov-title{font-size:26px;font-weight:700}
-.ov-sub{font-size:14px;color:#aaa;max-width:270px;line-height:1.5}
-.ov-cd{font-size:32px;font-weight:700;color:#f5a623}
-.btn-p{padding:12px 30px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;border:none;background:#e94560;color:#fff;width:100%;max-width:260px}
-.btn-p:hover{background:#c73652}
-.btn-s{padding:10px 30px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid #0f3460;background:#16213e;color:#ccc;width:100%;max-width:260px}
-.btn-s:hover{background:#0f3460}
+.ov-ic{font-size:52px;line-height:1}
+.ov-ti{font-size:24px;font-weight:700}
+.ov-su{font-size:13px;color:#aaa;max-width:270px;line-height:1.5}
+.ov-cd{font-size:30px;font-weight:700;color:#f5a623;min-height:40px}
+.bp{padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#e94560;color:#fff;width:100%;max-width:250px}
+.bp:hover{background:#c73652}
+.bs{padding:10px 28px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #0f3460;background:#16213e;color:#ccc;width:100%;max-width:250px}
+.bs:hover{background:#0f3460}
 </style>
 </head>
 <body>
 <div id="app">
 
-<!-- LEVEL SELECT -->
 <div id="sLS" class="scr on">
   <div class="ls-logo">&#128290; Number Match</div>
-  <div class="ls-sub">Clear all numbers to win</div>
-  <div class="ls-rules">
-    <span>Match <b>same numbers</b> (5 &amp; 5)</span>
-    <span>or <b>sum to 10</b> (3 &amp; 7)</span>
-    <span>Must be <b>adjacent</b></span>
-  </div>
+  <div class="ls-sub">Match same numbers or pairs that sum to 10.<br>Numbers must be adjacent to match.</div>
   <div class="ls-rl">Select Level</div>
   <div id="lgrid" class="lgrid"></div>
 </div>
 
-<!-- GAME -->
 <div id="sG" class="scr">
   <div class="hdr">
     <button class="hbk" id="bBack">&#8592;</button>
     <span class="hlv" id="lLv">Level 1</span>
     <span class="bdg bdg-r" id="lRow">Add: 6</span>
     <span class="bdg bdg-m" id="lMat">0 left</span>
-    <button id="hintBtn" onclick="doHint()">&#128161; Hint</button>
+    <button id="hBtn">&#128161; Hint</button>
   </div>
   <div class="sa" id="sa"><div id="grid"></div></div>
   <div class="ft">
-    <button class="btn-add" id="bAdd">&#65291; Add Row</button>
-    <div class="fic" id="hintFic" onclick="doHint()" title="Hint">&#128161;</div>
-    <div class="fic" onclick="restart()" title="Restart">&#8635;</div>
+    <button class="badd" id="bAdd">&#65291; Add Row (6)</button>
+    <div class="fic" id="hFic" title="Hint">&#128161;</div>
+    <div class="fic" id="bRst" title="Restart">&#8635;</div>
   </div>
 </div>
 
-<!-- WIN -->
 <div class="ov" id="oWin">
-  <div class="ov-icon">&#127881;</div>
-  <div class="ov-title" style="color:#f5a623">Level Complete!</div>
-  <div class="ov-sub" id="wSub"></div>
+  <div class="ov-ic">&#127881;</div>
+  <div class="ov-ti" style="color:#f5a623">Level Complete!</div>
+  <div class="ov-su" id="wSub"></div>
   <div class="ov-cd" id="wCd"></div>
-  <button class="btn-p" id="bNext">Next Level &#8594;</button>
-  <button class="btn-s" onclick="goMenu()">Menu</button>
+  <button class="bp" id="bNext">Next Level &#8594;</button>
+  <button class="bs" id="bWMenu">Menu</button>
 </div>
 
-<!-- GAME OVER -->
 <div class="ov" id="oOver">
-  <div class="ov-icon">&#128557;</div>
-  <div class="ov-title" style="color:#e94560">No More Moves</div>
-  <div class="ov-sub">No valid matches and all Add Row uses are gone.</div>
-  <button class="btn-p" onclick="restart()">Try Again</button>
-  <button class="btn-s" onclick="goMenu()">Menu</button>
+  <div class="ov-ic">&#128557;</div>
+  <div class="ov-ti" style="color:#e94560">No More Moves</div>
+  <div class="ov-su">No valid matches remain and all Add Row uses are gone.</div>
+  <button class="bp" id="bRetry">Try Again</button>
+  <button class="bs" id="bOMenu">Menu</button>
 </div>
 
-</div><!-- #app -->
-
+</div>
 <script>
-/* ── RNG ──────────────────────────────────────────────── */
+/* ===== RNG ===== */
 function RNG(s){this.s=((s^57005)>>>0)||1}
 RNG.prototype.nx=function(){var s=this.s;s^=s<<13;s^=s>>17;s^=s<<5;return this.s=s>>>0};
 RNG.prototype.int=function(n){return n<=1?0:this.nx()%n};
 RNG.prototype.bool=function(p){return this.nx()/4294967295<p};
 RNG.prototype.rng=function(a,b){return a+this.int(b-a+1)};
-RNG.prototype.shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=this.int(i+1),t=a[i];a[i]=a[j];a[j]=t}};
+RNG.prototype.shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=this.int(i+1);var t=a[i];a[i]=a[j];a[j]=t}};
 
-/* ── Constants ────────────────────────────────────────── */
-var C = 9, MAXAR = 6;
-
-/* ── Level configs ────────────────────────────────────── */
-// [seed, matchDensity 0-1, friction 0-1]
-// Higher matchDensity = more pairs = easier
-// Higher friction = more sum-to-10 pairs (harder to see) vs same-value
-var LCFG = [
-  [0,    1.00, 0.00], // L1  fixed board
-  [1033, 0.85, 0.10], // L2
-  [1037, 0.72, 0.25], // L3
-  [1039, 0.62, 0.38], // L4
-  [1081, 0.52, 0.50], // L5
-  [1099, 0.72, 0.25], // L6 relief
-  [1117, 0.58, 0.48], // L7
-  [1121, 0.48, 0.60], // L8
-  [1133, 0.42, 0.70], // L9
-  [1151, 0.36, 0.82], // L10
-  [1159, 0.72, 0.25]  // L11 relief
+/* ===== Config ===== */
+var C=9, MAXAR=6;
+// [seed, matchDensity, friction]
+var LCFG=[
+  [0,   1.00,0.00], // L1 fixed
+  [1033,0.85,0.10], // L2
+  [1037,0.72,0.25], // L3
+  [1039,0.62,0.38], // L4
+  [1081,0.52,0.50], // L5
+  [1099,0.72,0.25], // L6 relief
+  [1117,0.58,0.48], // L7
+  [1121,0.48,0.60], // L8
+  [1133,0.42,0.70], // L9
+  [1151,0.36,0.82], // L10
+  [1159,0.72,0.25]  // L11 relief
 ];
-var RELIEF = {6:1, 11:1};
+var RELIEF={6:true,11:true};
 
-/* ── Game state ───────────────────────────────────────── */
-var board=[], rows=0, lvl=0, sel=-1, matched=0, arUsed=0, hintOn=false, hintPair=[-1,-1], autoTid=null;
+/* ===== State ===== */
+var board=[],rows=0,lvl=0,sel=-1,arUsed=0,hintShown=false,hA=-1,hB=-1,autoTid=null;
 
-/* ── Helpers ──────────────────────────────────────────── */
+/* ===== DOM helpers ===== */
 function ge(id){return document.getElementById(id)}
 function showScr(id){
-  ['sLS','sG'].forEach(function(s){ge(s).classList.remove('on')});
+  ge('sLS').classList.remove('on');ge('sG').classList.remove('on');
   ge(id).classList.add('on');
 }
 function showOv(id){ge(id).classList.add('on')}
 function hideOv(id){ge(id).classList.remove('on')}
 
-/* ── Board generation ─────────────────────────────────── */
-/* Build a board from matched pairs + decoys.
-   pairs: same-value (e.g. 5,5) or sum-to-10 (e.g. 3,7)
-   The first pair is always placed at positions 0,1 (guaranteed visible match) */
-function buildBoard(lvlIdx) {
-  if (lvlIdx === 0) {
-    // Level 1: hand-crafted, all pairs adjacent
-    return [
-      1,1, 2,2, 3,3, 4,4, 5,
-      5,6,6, 7,7, 8,8, 9,9,
-      1,1, 2,2, 3,3, 4,4, 5
-    ];
+/* ===== Board generation ===== */
+function buildBoard(idx){
+  if(idx===0){
+    return[1,1,2,2,3,3,4,4,5,
+           5,6,6,7,7,8,8,9,9,
+           1,1,2,2,3,3,4,4,5];
   }
-  var cfg = LCFG[lvlIdx];
-  var seed=cfg[0], md=cfg[1], fr=cfg[2];
-  var rng = new RNG(seed);
-  var total = 27; // 3 rows × 9 cols
-  var pairCount = Math.max(3, Math.min(13, Math.floor(total * md / 2)));
-
-  // Pair catalogs
-  var SV  = [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]]; // same value
-  var S10 = [[1,9],[2,8],[3,7],[4,6],[5,5],[6,4],[7,3],[8,2],[9,1]]; // sum to 10
-  // sameValueRatio: low friction → more same-value (easier), high → more sum-to-10
-  var svr = Math.max(0.25, 1.0 - fr * 0.80);
-
-  var vals = [];
-  var firstPair = null;
-  for (var p = 0; p < pairCount && vals.length + 1 < total; p++) {
-    var cat = rng.bool(svr) ? SV : S10;
-    var pair = cat[rng.int(cat.length)];
-    if (!firstPair) firstPair = pair;
-    vals.push(pair[0]); vals.push(pair[1]);
+  var cfg=LCFG[idx],seed=cfg[0],md=cfg[1],fr=cfg[2];
+  var rng=new RNG(seed);
+  var total=27;
+  var pc=Math.max(3,Math.min(13,Math.floor(total*md/2)));
+  var SV=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]];
+  var S10=[[1,9],[2,8],[3,7],[4,6],[5,5],[6,4],[7,3],[8,2],[9,1]];
+  var svr=Math.max(0.25,1-fr*0.8);
+  var vals=[],g0,g1;
+  for(var p=0;p<pc&&vals.length+1<total;p++){
+    var cat=rng.bool(svr)?SV:S10;
+    var pair=cat[rng.int(cat.length)];
+    if(!g0){g0=pair[0];g1=pair[1]}
+    vals.push(pair[0]);vals.push(pair[1]);
   }
-
-  // Fill remaining with decoys (values with no partner in current set)
-  while (vals.length < total) {
-    var v = rng.rng(1,9), ok = true;
-    for (var k=0;k<vals.length;k++) if(vals[k]===v||vals[k]+v===10){ok=false;break}
-    vals.push(ok ? v : rng.rng(1,9));
+  while(vals.length<total){
+    var v=rng.rng(1,9),ok=true;
+    for(var k=0;k<vals.length;k++)if(vals[k]===v||vals[k]+v===10){ok=false;break}
+    vals.push(ok?v:rng.rng(1,9));
   }
-
-  // Shuffle but guarantee first pair at positions 0,1
-  var g0 = firstPair ? firstPair[0] : vals[0];
-  var g1 = firstPair ? firstPair[1] : vals[1];
   rng.shuffle(vals);
-  vals[0] = g0; vals[1] = g1;
+  if(g0){vals[0]=g0;vals[1]=g1}
   return vals;
 }
 
-/* ── Start level ──────────────────────────────────────── */
-function startLevel(idx) {
-  if (autoTid) { clearInterval(autoTid); clearTimeout(autoTid); autoTid=null; }
-  lvl=idx; sel=-1; matched=0; arUsed=0; hintOn=false; hintPair=[-1,-1];
-
-  var vals = buildBoard(idx);
-  board = vals.map(function(v){return{v:v,m:false}});
-  rows = 3;
-
-  ge('lLv').textContent = 'Level '+(idx+1);
-  hideOv('oWin'); hideOv('oOver');
-  setHintVisible(false);
-  renderGrid(false);
+/* ===== Start ===== */
+function startLevel(idx){
+  if(autoTid){clearInterval(autoTid);autoTid=null}
+  lvl=idx;sel=-1;arUsed=0;hintShown=false;hA=-1;hB=-1;
+  var vals=buildBoard(idx);
+  board=vals.map(function(v){return{v:v,m:false}});
+  rows=3;
+  ge('lLv').textContent='Level '+(idx+1);
+  hideOv('oWin');hideOv('oOver');
+  showHint(false);
+  renderAll();
   updateBadges();
   showScr('sG');
-  ge('sa').scrollTop = 0;
+  ge('sa').scrollTop=0;
 }
-
 function restart(){startLevel(lvl)}
 function goMenu(){
-  if(autoTid){clearInterval(autoTid);clearTimeout(autoTid);autoTid=null}
-  hideOv('oWin'); hideOv('oOver'); showScr('sLS');
+  if(autoTid){clearInterval(autoTid);autoTid=null}
+  hideOv('oWin');hideOv('oOver');showScr('sLS');
 }
 
-/* ── Hint visibility ──────────────────────────────────── */
-function setHintVisible(v) {
-  hintOn = v;
-  ge('hintBtn').style.display  = v ? 'block' : 'none';
-  ge('hintFic').style.display  = v ? 'flex'  : 'none';
+/* ===== Hint show/hide ===== */
+function showHint(v){
+  hintShown=v;
+  ge('hBtn').style.display=v?'block':'none';
+  ge('hFic').style.display=v?'flex':'none';
 }
 
-/* ── Render grid ──────────────────────────────────────── */
-function renderGrid(append, startIdx) {
-  var grid = ge('grid');
-  if (!append) grid.innerHTML = '';
-  var from = append ? (startIdx||0) : 0;
-  var to   = board.length;
-  for (var i = from; i < to; i++) {
-    var el = document.createElement('div');
-    el.className = 'cell' + (board[i].m ? ' cm' : '') + (append ? ' nr' : '');
-    el.id = 'c'+i;
-    el.textContent = board[i].v;
-    if (!board[i].m) el.addEventListener('click', (function(ii){return function(){tap(ii)}})(i));
-    grid.appendChild(el);
+/* ===== Grid render ===== */
+function renderAll(){
+  var g=ge('grid');g.innerHTML='';
+  for(var i=0;i<board.length;i++)g.appendChild(mkCell(i,false));
+  applyHintClass();
+}
+function appendRows(from){
+  var g=ge('grid');
+  for(var i=from;i<board.length;i++)g.appendChild(mkCell(i,true));
+  applyHintClass();
+}
+function mkCell(i,anim){
+  var el=document.createElement('div');
+  el.id='c'+i;
+  el.className='cell'+(board[i].m?' cm':'')+(anim?' nr':'');
+  el.textContent=board[i].v;
+  if(!board[i].m){
+    el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i));
   }
-  applyHint();
+  return el;
 }
-
 function cel(i){return ge('c'+i)}
-
-function refreshCell(i) {
-  var el = cel(i); if(!el) return;
-  el.className = 'cell' + (board[i].m ? ' cm' : '');
-  el.textContent = board[i].v;
+function refreshCell(i){
+  var el=cel(i);if(!el)return;
+  el.className='cell'+(board[i].m?' cm':'');
+  el.textContent=board[i].v;
+}
+function updateBadges(){
+  var rem=0;for(var i=0;i<board.length;i++)if(!board[i].m)rem++;
+  ge('lRow').textContent='Add: '+(MAXAR-arUsed);
+  ge('lMat').textContent=rem+' left';
+  ge('bAdd').disabled=arUsed>=MAXAR;
+  ge('bAdd').textContent='\uFF0B Add Row ('+(MAXAR-arUsed)+')';
 }
 
-function updateBadges() {
-  var rem = board.filter(function(c){return!c.m}).length;
-  ge('lRow').textContent = 'Add: '+(MAXAR-arUsed);
-  ge('lMat').textContent = rem+' left';
-  ge('bAdd').disabled = arUsed >= MAXAR;
-  ge('bAdd').textContent = '\uFF0B Add Row ('+(MAXAR-arUsed)+')';
-}
+/* ===== Tap ===== */
+function tap(i){
+  if(board[i].m)return;
+  // clear hint visuals but keep hA/hB for state
+  clearHintClass();
 
-/* ── Tap ──────────────────────────────────────────────── */
-function tap(i) {
-  if (board[i].m) return;
-  clearHintHL();
-
-  if (sel < 0) {
-    sel = i;
-    var e = cel(i); if(e) e.classList.add('cs');
+  if(sel<0){
+    sel=i;
+    var e=cel(i);if(e)e.classList.add('cs');
     return;
   }
-  if (sel === i) {
-    var e2 = cel(i); if(e2) e2.classList.remove('cs');
-    sel = -1; return;
+  if(sel===i){
+    var e=cel(sel);if(e)e.classList.remove('cs');
+    sel=-1;return;
   }
 
-  var a=sel, b=i; sel=-1;
-  var ea=cel(a), eb=cel(b);
-  if(ea) ea.classList.remove('cs');
+  var a=sel,b=i;sel=-1;
+  var ea=cel(a),eb=cel(b);
+  if(ea)ea.classList.remove('cs');
 
-  if (canMatch(a,b)) {
-    board[a].m = true; board[b].m = true; matched += 2;
-    if(ea){ea.classList.add('fok');setTimeout(function(){refreshCell(a)},320)}
-    if(eb){eb.classList.add('fok');setTimeout(function(){refreshCell(b)},320)}
+  if(canMatch(a,b)){
+    board[a].m=true;board[b].m=true;
+    if(ea){ea.classList.add('fok');setTimeout(function(){refreshCell(a)},380)}
+    if(eb){eb.classList.add('fok');setTimeout(function(){refreshCell(b)},380)}
+    hA=-1;hB=-1; // clear hint pair after a match
     updateBadges();
     setTimeout(function(){
-      if (allMatched()) { showWin(); return; }
-      if (!hasAnyMatch() && arUsed >= MAXAR) { showOv('oOver'); return; }
-      if (!hasAnyMatch()) { setHintVisible(true); }
-    }, 350);
-  } else {
-    if(ea){ea.classList.add('ferr');setTimeout(function(){ea.classList.remove('ferr')},350)}
-    if(eb){eb.classList.add('ferr');setTimeout(function(){eb.classList.remove('ferr')},350)}
-    setHintVisible(true); // unlock hint on wrong attempt
+      if(allDone()){showWin();return}
+      if(!anyMatch()&&arUsed>=MAXAR){showOv('oOver');return}
+      if(!anyMatch()){showHint(true)}
+    },400);
+  }else{
+    if(ea){ea.classList.add('ferr');setTimeout(function(){ea.classList.remove('ferr')},400)}
+    if(eb){eb.classList.add('ferr');setTimeout(function(){eb.classList.remove('ferr')},400)}
+    showHint(true); // unlock hint on wrong guess
   }
 }
 
-/* ── Match rules ──────────────────────────────────────── */
-function canMatch(a,b) {
-  if (a===b||board[a].m||board[b].m) return false;
-  var va=board[a].v, vb=board[b].v;
-  if (va!==vb && va+vb!==10) return false;
-  return adjacent(a,b);
+/* ===== Match rules ===== */
+function canMatch(a,b){
+  if(a===b||board[a].m||board[b].m)return false;
+  var va=board[a].v,vb=board[b].v;
+  if(va!==vb&&va+vb!==10)return false;
+  return adj(a,b);
 }
-
-function adjacent(a,b) {
-  if (a>b){var t=a;a=b;b=t}
-  var ra=Math.floor(a/C), ca=a%C;
-  var rb=Math.floor(b/C), cb=b%C;
-  var dr=rb-ra, dc=Math.abs(cb-ca);
-
-  // Horizontal (same row, skip matched between)
-  if (dr===0) return noActiveBetween(a,b);
-
-  // Vertical (same col, skip matched between)
-  if (dc===0) return noActiveBetweenCol(ra,rb,ca);
-
-  // Diagonal: adjacent rows, adjacent cols
-  if (dr===1 && dc===1) return true;
-
-  // Wrap-around: end of row to start of next row (skip matched)
-  return noActiveBetween(a,b);
+function adj(a,b){
+  if(a>b){var t=a;a=b;b=t}
+  var ra=Math.floor(a/C),ca=a%C;
+  var rb=Math.floor(b/C),cb=b%C;
+  var dr=rb-ra,dc=Math.abs(cb-ca);
+  if(dr===0)return noActiveBetween(a,b);       // horizontal
+  if(dc===0)return noActiveInCol(ra,rb,ca);    // vertical
+  if(dr===1&&dc===1)return true;               // diagonal
+  return noActiveBetween(a,b);                 // wrap-around
 }
-
-function noActiveBetween(lo,hi) {
-  for(var i=lo+1;i<hi;i++) if(!board[i].m) return false;
+function noActiveBetween(lo,hi){
+  for(var i=lo+1;i<hi;i++)if(!board[i].m)return false;
   return true;
 }
-function noActiveBetweenCol(rA,rB,col) {
+function noActiveInCol(rA,rB,col){
   for(var r=rA+1;r<rB;r++){var c=board[r*C+col];if(c&&!c.m)return false}
   return true;
 }
-
-function hasAnyMatch(){
+function anyMatch(){
   var ac=[];
-  for(var i=0;i<board.length;i++) if(!board[i].m) ac.push(i);
+  for(var i=0;i<board.length;i++)if(!board[i].m)ac.push(i);
   for(var i=0;i<ac.length;i++)
     for(var j=i+1;j<ac.length;j++)
-      if(canMatch(ac[i],ac[j])) return true;
+      if(canMatch(ac[i],ac[j]))return true;
   return false;
 }
-
-function allMatched(){
-  for(var i=0;i<board.length;i++) if(!board[i].m) return false;
+function allDone(){
+  for(var i=0;i<board.length;i++)if(!board[i].m)return false;
   return true;
 }
 
-/* ── Hint ─────────────────────────────────────────────── */
-function doHint() {
-  clearHintHL();
-  var pair = findMatch();
-  if (!pair) return;
-  hintPair = pair;
-  applyHint();
+/* ===== Hint ===== */
+function doHint(){
+  clearHintClass();
+  var pair=findBestMatch();
+  if(!pair){
+    // no matches exist — tell player to use Add Row
+    ge('hBtn').textContent='Use + Add Row!';
+    setTimeout(function(){ge('hBtn').textContent='\uD83D\uDCA1 Hint'},1500);
+    return;
+  }
+  hA=pair[0];hB=pair[1];
+  applyHintClass();
+  // Auto-clear hint after 3 seconds
+  setTimeout(function(){clearHintClass();hA=-1;hB=-1},3000);
 }
-
-function findMatch() {
+function findBestMatch(){
   var ac=[];
-  for(var i=0;i<board.length;i++) if(!board[i].m) ac.push(i);
-  // Find pair with largest gap (harder to see, most useful hint)
-  var best=null, bestGap=0;
-  for(var i=0;i<ac.length;i++)
-    for(var j=i+1;j<ac.length;j++)
+  for(var i=0;i<board.length;i++)if(!board[i].m)ac.push(i);
+  var best=null,bestGap=-1;
+  for(var i=0;i<ac.length;i++){
+    for(var j=i+1;j<ac.length;j++){
       if(canMatch(ac[i],ac[j])){
         var gap=ac[j]-ac[i];
-        if(!best||gap>bestGap){best=[ac[i],ac[j]];bestGap=gap}
+        if(gap>bestGap){bestGap=gap;best=[ac[i],ac[j]]}
       }
+    }
+  }
   return best;
 }
-
-function applyHint() {
-  if (hintPair[0]>=0){var e=cel(hintPair[0]);if(e&&!board[hintPair[0]].m)e.classList.add('ha')}
-  if (hintPair[1]>=0){var e=cel(hintPair[1]);if(e&&!board[hintPair[1]].m)e.classList.add('hb')}
+function applyHintClass(){
+  if(hA>=0){var e=cel(hA);if(e&&!board[hA].m)e.classList.add('ha')}
+  if(hB>=0){var e=cel(hB);if(e&&!board[hB].m)e.classList.add('hb')}
+}
+function clearHintClass(){
+  if(hA>=0){var e=cel(hA);if(e){e.classList.remove('ha');e.classList.remove('hb')}}
+  if(hB>=0){var e=cel(hB);if(e){e.classList.remove('ha');e.classList.remove('hb')}}
 }
 
-function clearHintHL() {
-  [hintPair[0],hintPair[1]].forEach(function(i){
-    if(i<0)return;var e=cel(i);
-    if(e){e.classList.remove('ha');e.classList.remove('hb')}
-  });
-  hintPair=[-1,-1];
-}
+/* ===== Add Row ===== */
+function doAddRow(){
+  if(arUsed>=MAXAR)return;
+  clearHintClass();hA=-1;hB=-1;
 
-/* ── Add Row — smart injection ────────────────────────── */
-/* Strategy: scan unmatched cells on board.
-   For each unmatched value, inject its COMPLEMENT (same or sum-to-10 partner).
-   This guarantees the new row creates valid matches with existing numbers.
-   Mix in some decoys based on level friction. */
-function doAddRow() {
-  if (arUsed >= MAXAR) return;
-  clearHintHL();
+  // Collect unmatched values on the board
+  var unmatched=[];
+  for(var i=0;i<board.length;i++)if(!board[i].m)unmatched.push(board[i].v);
 
-  // Collect unmatched values
-  var unmatched = [];
-  for(var i=0;i<board.length;i++) if(!board[i].m) unmatched.push(board[i].v);
-  if (!unmatched.length) return;
+  var cfg=LCFG[Math.min(lvl,LCFG.length-1)];
+  var fr=cfg[2];
+  var rng=new RNG(arUsed*1009+lvl*37+7);
+  var pool=unmatched.slice();rng.shuffle(pool);
 
-  var cfg = LCFG[Math.min(lvl, LCFG.length-1)];
-  var fr  = cfg[2]; // friction: 0=easy, 1=hard
-  var rng = new RNG(arUsed*997 + lvl*31 + 3);
-
-  // Shuffle to pick varied source values
-  var pool = unmatched.slice(); rng.shuffle(pool);
-
-  var newRow = [];
-  for (var c = 0; c < C; c++) {
-    var src = pool[c % pool.length];
-
-    // decoy chance based on friction (higher level = more decoys)
-    if (rng.bool(fr * 0.5)) {
-      // Decoy: value that has NO match on the board
-      var decoy = src;
-      for (var t=0; t<10; t++) {
-        var cand = rng.rng(1,9);
-        var hasPair = false;
-        for (var k=0;k<unmatched.length;k++) if(unmatched[k]===cand||unmatched[k]+cand===10){hasPair=true;break}
-        if (!hasPair) { decoy=cand; break; }
+  // Build new row: inject complements of unmatched values
+  // so player always gets numbers that can match existing ones
+  var newRow=[];
+  for(var c=0;c<C;c++){
+    var src=pool[c%pool.length];
+    if(rng.bool(fr*0.45)){
+      // decoy: value with no partner on board
+      var decoy=src;
+      for(var t=0;t<12;t++){
+        var cand=rng.rng(1,9),hasPair=false;
+        for(var k=0;k<unmatched.length;k++)if(unmatched[k]===cand||unmatched[k]+cand===10){hasPair=true;break}
+        if(!hasPair){decoy=cand;break}
       }
       newRow.push(decoy);
-    } else {
-      // Helper: complement of src (creates a valid match with src on board)
-      // 60% same-value, 40% sum-to-10 (adjusted by friction)
-      if (rng.bool(0.6 - fr * 0.3)) {
+    }else{
+      // helper: complement of src
+      if(rng.bool(0.55-fr*0.25)){
         newRow.push(src); // same-value match
-      } else {
-        var p10 = 10 - src;
-        newRow.push((p10>=1&&p10<=9) ? p10 : src);
+      }else{
+        var p10=10-src;
+        newRow.push((p10>=1&&p10<=9)?p10:src);
       }
     }
   }
 
-  var startIdx = board.length;
-  for(var c=0;c<C;c++) board.push({v:newRow[c],m:false});
-  rows++;
-  arUsed++;
+  var from=board.length;
+  for(var c=0;c<C;c++)board.push({v:newRow[c],m:false});
+  rows++;arUsed++;
 
-  setHintVisible(true);
-  renderGrid(true, startIdx);
+  showHint(true);
+  appendRows(from);
   updateBadges();
   setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
-
-  // Check game over after adding row
-  if (arUsed >= MAXAR && !hasAnyMatch()) showOv('oOver');
+  if(arUsed>=MAXAR&&!anyMatch())setTimeout(function(){showOv('oOver')},300);
 }
 
-/* ── Win ──────────────────────────────────────────────── */
-function showWin() {
-  var next = lvl+1;
-  ge('wSub').textContent = next < LCFG.length ? 'Advancing to Level '+(next+1)+'...' : 'You cleared all 11 levels!';
-  ge('bNext').style.display = next < LCFG.length ? 'block' : 'none';
-  ge('bNext').onclick = function(){hideOv('oWin');startLevel(next)};
-
-  var cd=3; ge('wCd').textContent=cd;
+/* ===== Win ===== */
+function showWin(){
+  var next=lvl+1;
+  var isLast=next>=LCFG.length;
+  ge('wSub').textContent=isLast?'You completed all 11 levels! \uD83C\uDFC6':'Advancing to Level '+(next+1)+'...';
+  ge('bNext').style.display=isLast?'none':'block';
+  ge('wCd').textContent=isLast?'':'\u23F3';
   showOv('oWin');
-
-  if (next < LCFG.length) {
-    autoTid = setInterval(function(){
-      cd--; ge('wCd').textContent = cd>0?cd:'';
+  if(!isLast){
+    var cd=3;ge('wCd').textContent=cd;
+    autoTid=setInterval(function(){
+      cd--;
+      ge('wCd').textContent=cd>0?cd:'';
       if(cd<=0){clearInterval(autoTid);autoTid=null;hideOv('oWin');startLevel(next)}
-    }, 1000);
-  } else { ge('wCd').textContent=''; }
+    },1000);
+  }
 }
 
-/* ── Level select ─────────────────────────────────────── */
-function buildLS() {
-  var g=ge('lgrid'); g.innerHTML='';
+/* ===== Level select ===== */
+function buildLS(){
+  var g=ge('lgrid');g.innerHTML='';
   for(var i=0;i<LCFG.length;i++){
     (function(idx){
       var btn=document.createElement('div');
@@ -504,11 +443,18 @@ function buildLS() {
   }
 }
 
-/* ── Back button ──────────────────────────────────────── */
-ge('bBack').onclick = goMenu;
-ge('bAdd').onclick  = doAddRow;
+/* ===== Wire buttons ===== */
+ge('bBack').onclick=goMenu;
+ge('bAdd').onclick=doAddRow;
+ge('hBtn').onclick=doHint;
+ge('hFic').onclick=doHint;
+ge('bRst').onclick=restart;
+ge('bNext').onclick=function(){hideOv('oWin');if(autoTid){clearInterval(autoTid);autoTid=null}startLevel(lvl+1)};
+ge('bWMenu').onclick=goMenu;
+ge('bRetry').onclick=restart;
+ge('bOMenu').onclick=goMenu;
 
-/* ── Boot ─────────────────────────────────────────────── */
+/* ===== Boot ===== */
 buildLS();
 </script>
 </body>
