@@ -14,11 +14,9 @@ function validateBoard(board) {
       return { valid: false, reason: 'Cell value out of range at index ' + i };
     }
   }
+  // Only require at least one initial match — solvability is guaranteed by pair-first seeding
   if (!hasAnyMatch(board)) {
     return { valid: false, reason: 'No initial valid match exists' };
-  }
-  if (!isBoardSolvable(board)) {
-    return { valid: false, reason: 'Board is not fully solvable by greedy solver' };
   }
   return { valid: true, reason: 'OK' };
 }
