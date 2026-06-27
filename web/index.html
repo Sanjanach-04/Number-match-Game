@@ -142,7 +142,7 @@ var LCFG=[
   {md:0.72,hm:0.20,dr:0.20,seed:3001159}  /* L11 RELIEF  */
 ];
 var RELIEF_IDX={5:1,10:1};
-var NC=9, MAXAR=1;
+var NC=9;
 
 /* ── Match rules — all take explicit (bd,a,b) ── */
 function vM(va,vb){return va===vb||va+vb===10}
@@ -290,7 +290,7 @@ function mkc(i,anim){
   return el
 }
 function rcell(i){var el=gc(i);if(!el)return;el.className='cell'+(G.board[i].m?' cm':'');el.textContent=G.board[i].v;if(!G.board[i].m)el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i))}
-function badges(){var rem=0;for(var i=0;i<G.board.length;i++)if(!G.board[i].m)rem++;ge('lRow').textContent=G.arUsed>=MAXAR?'used':'1 use';ge('lMat').textContent=rem+' left';ge('bAdd').disabled=G.arUsed>=MAXAR;ge('bAdd').textContent=G.arUsed>=MAXAR?'\uFF0B Add Number (used)':'\uFF0B Add Number'}
+function badges(){var rem=0;for(var i=0;i<G.board.length;i++)if(!G.board[i].m)rem++;ge('lRow').textContent='';ge('lMat').textContent=rem+' left';ge('bAdd').disabled=false;ge('bAdd').textContent='\uFF0B Add Number'}
 
 /* ── Tap / match ── */
 function tap(i){
@@ -303,7 +303,7 @@ function tap(i){
     if(ea){ea.classList.add('fok');setTimeout(function(){rcell(a)},360)}
     if(eb){eb.classList.add('fok');setTimeout(function(){rcell(b)},360)}
     badges();
-    setTimeout(function(){if(isCleared(G.board)){showWin();return}if(!hasMatch(G.board)&&G.arUsed>=MAXAR){sov('oOver')}},380)
+    setTimeout(function(){if(isCleared(G.board)){showWin();return}},380)
   }else{
     if(ea){ea.classList.add('ferr');setTimeout(function(){ea.classList.remove('ferr')},380)}
     if(eb){eb.classList.add('ferr');setTimeout(function(){eb.classList.remove('ferr')},380)}
@@ -322,14 +322,13 @@ function doHint(){
 function hApply(){if(G.hA>=0){var e=gc(G.hA);if(e&&!G.board[G.hA].m)e.classList.add('ha')}if(G.hB>=0){var e=gc(G.hB);if(e&&!G.board[G.hB].m)e.classList.add('hb')}}
 function hClear(){if(G.hA>=0){var e=gc(G.hA);if(e){e.classList.remove('ha');e.classList.remove('hb')}}if(G.hB>=0){var e=gc(G.hB);if(e){e.classList.remove('ha');e.classList.remove('hb')}}}
 
-/* ── Add Row with intercept ── */
-function doAdd(){if(G.arUsed>=MAXAR)return;if(hasMatch(G.board)){sov('oConfirm');return}doAddActual()}
+/* ── Add Number — always runs immediately, no confirm dialog, no limit ── */
+function doAdd(){doAddActual()}
 function doAddActual(){
-  if(G.arUsed>=MAXAR)return;hClear();G.hA=-1;G.hB=-1;
+  hClear();G.hA=-1;G.hB=-1;
   var res=smartAdd(G.board);
   var prevLen=G.board.length;
   G.board=res.bd;
-  G.arUsed++;
   /* Append all new cells to DOM */
   var g=ge('grid');
   for(var i=prevLen;i<G.board.length;i++){
@@ -337,7 +336,6 @@ function doAddActual(){
   }
   sAdd();badges();
   setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
-  if(G.arUsed>=MAXAR&&!hasMatch(G.board))setTimeout(function(){sov('oOver')},400)
 }
 
 /* ── Win ── */
