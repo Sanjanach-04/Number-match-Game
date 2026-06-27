@@ -226,100 +226,194 @@ function _bld(cfg,att){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ADD NUMBER ENGINE — intelligent minimal rescue (definitive)
+   ADD NUMBER ENGINE — ported from SmartAddRowEngine reference
 
-   WHAT "STRANDED" MEANS HERE
-   A value v is stranded when no complement exists on the board:
-     - no cell with value v  has another v to pair with  (same-val)
-     - no cell with value comp(v) exists at all           (sum-10)
-   Path/adjacency is NOT checked here — new cells appended at
-   the end become reachable via the wrap rule once earlier cells
-   are cleared. We only need to guarantee the VALUE exists.
+   Logic ported faithfully from the TypeScript reference:
 
-   ALGORITHM
-   ─────────────────────────────────────────────────────────────
-   1. freq  = count of every active value on board.
-   2. For each value v (1-9):
-        comp = v===5 ? 5 : 10-v
-        • Same-value pair (v=comp=5): total must be even. If odd, need 1.
-        • Cross pair (v≠comp):
-            need_c = max(0, count(v) - count(comp))
-            need_v = max(0, count(comp) - count(v))
-          These are the ONLY cells that lack a value-partner.
-   3. Rescue = the deficit values, sorted so same values land
-      adjacent → immediately matchable via wrap rule.
-   4. Validate: after appending, hasMatch() must be true.
-      If not, force one back-to-back adjacent pair as fallback.
+   1. analyzeBoardFrequency()
+      Count active values. Give +10 weight to stragglers
+      (values that are the only active cell in their row).
 
-   EXAMPLES
-     [1]      → deficit: need 1×9          → rescue [9]
-     [4]      → deficit: need 1×6          → rescue [6]
-     [5]      → freq{5:1} odd              → rescue [5]
-     [1,8]    → deficit: need 9, need 2    → rescue [2,9]
-     [3,7]    → freq{3:1,7:1} balanced     → rescue []  (already solvable)
-     [3,3,7]  → deficit: need 1×3          → rescue [3]
+   2. generateMinimalRescueRow()
+      Map every remaining number → its complement.
+      REVERSE the array for zipper/seesaw clearing order.
+      e.g. stranded [1,2,3] → complements [9,8,7] → reversed [7,8,9]
+      Then 3↔7, 2↔8, 1↔9 clear sequentially.
 
-   Zero Math.random(). No orphans. No extras. Minimal.
+   3. validateRescueRow()
+      Simulate board after adding the row.
+      Pairs must INCREASE. Then greedily clear by shortest
+      cell-distance first. Board must fully empty.
+
+   4. fallback: if validation fails or rescue is empty but board
+      is stuck, force one back-to-back pair (wrap-rule instant match).
+
+   Complement rules: 1↔9  2↔8  3↔7  4↔6  5↔5
+   Zero Math.random(). No orphans. Deterministic.
 ══════════════════════════════════════════════════════════════ */
 
-function smartAdd(bd) {
+/* comp(v): complement value */
+function comp(v) { return v === 5 ? 5 : (10 - v); }
 
-  /* Step 1 — count every active value */
+/* Collect all active values in reading order */
+function getRemainingNumbers(bd) {
+  var out = [];
+  for (var i = 0; i < bd.length; i++) if (!bd[i].m) out.push(bd[i].v);
+  return out;
+}
+
+/* analyzeBoardFrequency: freq map with +10 straggler weight */
+function analyzeBoardFrequency(bd) {
   var freq = {};
-  for (var i = 0; i < bd.length; i++) {
-    if (!bd[i].m) { var vv = bd[i].v; freq[vv] = (freq[vv] || 0) + 1; }
+  for (var v = 1; v <= 9; v++) freq[v] = 0;
+  /* base count */
+  var rem = getRemainingNumbers(bd);
+  for (var i = 0; i < rem.length; i++) freq[rem[i]]++;
+  /* straggler boost: rows with only 1 active cell → +10 */
+  var rows = Math.ceil(bd.length / NC);
+  for (var r = 0; r < rows; r++) {
+    var active = [];
+    for (var c = 0; c < NC; c++) {
+      var idx = r * NC + c;
+      if (idx < bd.length && !bd[idx].m) active.push(bd[idx].v);
+    }
+    if (active.length === 1) freq[active[0]] += 10;
+  }
+  return freq;
+}
+
+/* generateMinimalRescueRow: complements reversed (zipper order) */
+function generateMinimalRescueRow(remaining) {
+  var complements = remaining.map(function(n) { return comp(n); });
+  complements.reverse();
+  return complements;
+}
+
+/* validateRescueRow: simulate board + row, check solvability */
+function validateRescueRow(bd, row) {
+  /* build candidate board */
+  var sim = bd.slice();
+  for (var i = 0; i < row.length; i++) sim.push({ v: row[i], m: false });
+
+  var pairsBefore = allPairs(bd).length;
+  var pairsAfter  = allPairs(sim);
+
+  if (pairsAfter.length === 0 || pairsAfter.length <= pairsBefore) return false;
+
+  /* greedy simulation: always pick shortest-distance pair first */
+  var moves = 0;
+  while (moves < 40) {
+    var pairs = allPairs(sim);
+    if (pairs.length === 0) break;
+    /* sort by Manhattan distance (row-diff + col-diff) */
+    pairs.sort(function(p1, p2) {
+      var r1a = Math.floor(p1[0] / NC), c1a = p1[0] % NC;
+      var r1b = Math.floor(p1[1] / NC), c1b = p1[1] % NC;
+      var r2a = Math.floor(p2[0] / NC), c2a = p2[0] % NC;
+      var r2b = Math.floor(p2[1] / NC), c2b = p2[1] % NC;
+      var d1 = Math.abs(r1a - r1b) + Math.abs(c1a - c1b);
+      var d2 = Math.abs(r2a - r2b) + Math.abs(c2a - c2b);
+      return d1 - d2;
+    });
+    sim[pairs[0][0]].m = true;
+    sim[pairs[0][1]].m = true;
+    moves++;
+  }
+  var remaining = 0;
+  for (var i = 0; i < sim.length; i++) if (!sim[i].m) remaining++;
+  return remaining === 0;
+}
+
+/* calculateProjectedWinScore: greedy simulation, returns 0-100 */
+function calculateProjectedWinScore(bd, row) {
+  var sim = bd.slice();
+  for (var i = 0; i < row.length; i++) sim.push({ v: row[i], m: false });
+  var initial = getRemainingNumbers(sim).length;
+  var moves = 0;
+  while (moves < 15) {
+    var pairs = allPairs(sim);
+    if (pairs.length === 0) break;
+    sim[pairs[0][0]].m = true;
+    sim[pairs[0][1]].m = true;
+    moves++;
+  }
+  var finalRem = getRemainingNumbers(sim).length;
+  if (finalRem === 0) return 100;
+  return Math.min(100, Math.round(((initial - finalRem) / Math.max(1, initial)) * 100));
+}
+
+function smartAdd(bd) {
+  var remaining = getRemainingNumbers(bd);
+
+  /* empty board fallback */
+  if (remaining.length === 0) {
+    var fallback = [1,9,2,8,3,7,4,6,5];
+    var nb0 = bd.slice();
+    for (var i = 0; i < fallback.length; i++) nb0.push({ v: fallback[i], m: false });
+    return { bd: nb0 };
   }
 
-  /* Step 2 — compute deficit for each pair type */
-  var rescue = [];
-  var done   = {};
+  /* Step 1: frequency analysis with straggler boost */
+  var freq = analyzeBoardFrequency(bd);
 
+  /* Step 2: build weighted remaining list
+     Numbers with higher weight (stragglers) appear multiple times
+     so generateMinimalRescueRow prioritises their complements */
+  var weightedRemaining = [];
   for (var v = 1; v <= 9; v++) {
-    if (!(freq[v] > 0)) continue;   /* value not on board, skip */
-    if (done[v]) continue;
-    var c = (v === 5) ? 5 : (10 - v);
-    done[v] = true;
-    done[c] = true;
+    if (freq[v] <= 0) continue;
+    /* base count (without +10 boost) */
+    var baseCount = 0;
+    for (var i = 0; i < remaining.length; i++) if (remaining[i] === v) baseCount++;
+    /* if freq[v] > baseCount it has a straggler boost — add it first */
+    if (freq[v] > baseCount) weightedRemaining.unshift(v); /* high priority */
+    else for (var d = 0; d < baseCount; d++) weightedRemaining.push(v);
+  }
+  /* if weighting produced nothing, fall back to plain remaining */
+  if (weightedRemaining.length === 0) weightedRemaining = remaining.slice();
 
-    var cv = freq[v] || 0;
-    var cc = freq[c] || 0;
+  /* Step 3: generate minimal rescue row (complements reversed — zipper order) */
+  var rescueRow = generateMinimalRescueRow(weightedRemaining);
 
-    if (c === v) {
-      /* 5↔5 self-pair: need even total */
-      if (cv % 2 !== 0) rescue.push(5);
-    } else {
-      /* cross pair: balance counts */
-      if (cv > cc) {
-        /* more v than c → add (cv-cc) copies of c */
-        for (var d = 0; d < cv - cc; d++) rescue.push(c);
-      } else if (cc > cv) {
-        /* more c than v → add (cc-cv) copies of v */
-        for (var d = 0; d < cc - cv; d++) rescue.push(v);
+  /* Step 4: validate; if fails try with plain remaining order */
+  var valid = validateRescueRow(bd, rescueRow);
+  if (!valid) {
+    rescueRow = generateMinimalRescueRow(remaining);
+    valid = validateRescueRow(bd, rescueRow);
+  }
+
+  /* Step 5: score the row */
+  var score = calculateProjectedWinScore(bd, rescueRow);
+
+  /* Step 6: if score too low (< 30) or row doesn't even create a match,
+     fall back to frequency-deficit approach as safety net */
+  if (score < 30 || !hasMatch(bd.slice().concat(rescueRow.map(function(v){return{v:v,m:false};})))) {
+    var done = {}, deficitRow = [];
+    for (var v = 1; v <= 9; v++) {
+      if (!freq[v] || done[v]) continue;
+      var c = comp(v); done[v] = true; done[c] = true;
+      var cv = 0, cc = 0;
+      for (var i = 0; i < remaining.length; i++) {
+        if (remaining[i] === v) cv++;
+        if (remaining[i] === c) cc++;
       }
-      /* cv === cc → already balanced, nothing needed */
+      if (c === v) { if (cv % 2 !== 0) deficitRow.push(5); }
+      else if (cv > cc) { for (var d = 0; d < cv-cc; d++) deficitRow.push(c); }
+      else if (cc > cv) { for (var d = 0; d < cc-cv; d++) deficitRow.push(v); }
     }
+    if (deficitRow.length > 0) rescueRow = deficitRow;
   }
 
-  /* Step 3 — sort so same values are adjacent (wrap-matchable) */
-  rescue.sort(function(a, b) { return a - b; });
-
-  /* Step 4 — append to board */
+  /* Step 7: append rescue row to board */
   var nb = bd.slice();
-  for (var i = 0; i < rescue.length; i++) {
-    nb.push({ v: rescue[i], m: false });
-  }
+  for (var i = 0; i < rescueRow.length; i++) nb.push({ v: rescueRow[i], m: false });
 
-  /* Step 5 — validate: must have at least one immediate match.
-     If rescue balanced values but all paths still blocked, force
-     one back-to-back pair at end (wrap rule: 0 cells between). */
+  /* Step 8: final safety — if still no immediate match, force adjacent pair */
   if (!hasMatch(nb)) {
-    /* pick first active value to force-pair */
     var fv = null;
-    for (var i = 0; i < nb.length; i++) {
-      if (!nb[i].m) { fv = nb[i].v; break; }
-    }
+    for (var i = 0; i < nb.length; i++) { if (!nb[i].m) { fv = nb[i].v; break; } }
     if (fv !== null) {
-      var fc = (fv === 5) ? 5 : (10 - fv);
+      var fc = comp(fv);
       nb.push({ v: fc, m: false });
       nb.push({ v: fv, m: false });
     }
