@@ -258,39 +258,39 @@ function buildRescueRow(bd){
   return rescue}
 
 function validateRescue(bd,row){
+  /* Valid if: rescue row creates at least one new immediate match.
+     We do NOT require the board to fully empty — that's impossible
+     mid-game. One new playable pair is sufficient. */
   if(row.length===0)return hasMatch(bd);
   var sim=[];
   for(var i=0;i<bd.length;i++)sim.push({v:bd[i].v,m:bd[i].m});
   for(var i=0;i<row.length;i++)sim.push({v:row[i],m:false});
-  if(!hasMatch(sim))return false;
-  for(var moves=0;moves<60;moves++){
-    var pairs=allPairs(sim);if(pairs.length===0)break;
-    pairs.sort(function(a,b){
-      var da=Math.abs(Math.floor(a[0]/NC)-Math.floor(a[1]/NC))+Math.abs((a[0]%NC)-(a[1]%NC));
-      var db=Math.abs(Math.floor(b[0]/NC)-Math.floor(b[1]/NC))+Math.abs((b[0]%NC)-(b[1]%NC));
-      return da-db});
-    sim[pairs[0][0]].m=true;sim[pairs[0][1]].m=true}
-  for(var i=0;i<sim.length;i++)if(!sim[i].m)return false;
-  return true}
+  return hasMatch(sim);
+}
 
 function smartAdd(bd){
   if(getRemainingNumbers(bd).length===0)return{bd:bd.slice()};
+
+  /* Step2: propose minimal deficit rescue */
   var rescueRow=buildRescueRow(bd);
-  if(!validateRescue(bd,rescueRow)){
-    var seen={},broader=[];
-    var rem2=getRemainingNumbers(bd);
-    for(var i=0;i<rem2.length;i++){
-      if(seen[rem2[i]])continue;
-      seen[rem2[i]]=true;seen[comp(rem2[i])]=true;
-      broader.push(comp(rem2[i]))}
-    rescueRow=broader}
+
+  /* Step3: validate — at least one new match must exist */
   var nb=bd.slice();
   for(var i=0;i<rescueRow.length;i++)nb.push({v:rescueRow[i],m:false});
-  if(!hasMatch(nb)){
-    var fv=null;
-    for(var i=0;i<nb.length;i++){if(!nb[i].m){fv=nb[i].v;break}}
-    if(fv!==null){nb.push({v:comp(fv),m:false});nb.push({v:fv,m:false})}}
-  return{bd:nb}}
+
+  /* If deficit row already creates a match, we're done */
+  if(hasMatch(nb))return{bd:nb};
+
+  /* Otherwise: board was already matchable (rescue was empty []),
+     or rescue values exist but paths are all still blocked.
+     Force one adjacent pair at the very end for an instant match. */
+  var fv=null;
+  for(var i=0;i<nb.length;i++){if(!nb[i].m){fv=nb[i].v;break}}
+  if(fv!==null){
+    nb.push({v:comp(fv),m:false});
+    nb.push({v:fv,m:false})}
+  return{bd:nb}
+}
 
 var _ac=null;
 function gAC(){if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return _ac}
