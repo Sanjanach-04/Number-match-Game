@@ -226,35 +226,39 @@ function _bld(cfg,att){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ADD ROW ENGINE  — v5 (mirror copy)
+   ADD ROW ENGINE  — v6 (complement mirror)
 
-   GOAL  One press → append an exact copy of every remaining active
-         number on the board.
+   For every remaining active number on the board, append its
+   complement so the player can match every cell.
 
-   WHY THIS WORKS
-   Every remaining number now has an identical twin appended at the
-   end.  Same-value pairs (e.g. 3↔3) are always valid by the game
-   rules.  The twin sits at the very end of the board array, so as
-   the player clears cells in between, the wrap/zipper path opens up
-   and each original number can match its twin.
+   Complement rules (same as game match rules):
+     1↔9  2↔8  3↔7  4↔6  5↔5  6↔4  7↔3  8↔2  9↔1
 
-   RESULT  Player can ALWAYS clear the entire board after one press —
-   guaranteed, deterministic, no random numbers, no orphans.
+   Example: remaining [8, 1, 3, 5, 6]
+   Adds:             [2, 9, 7, 5, 4]
+
+   Each added complement sits after its source in reading order.
+   As the player clears pairs, the wrap path opens so every
+   original cell can reach its appended complement.
+
+   Guaranteed: one press makes the entire board solvable.
+   Zero random numbers. Fully deterministic.
 ══════════════════════════════════════════════════════════════ */
 
 function smartAdd(bd) {
-  /* Collect every active (uncleared) cell value in reading order */
-  var mirror = [];
+  /* For each active cell, compute and append its complement */
+  var nb = bd.slice();
+  var added = [];
+
   for (var i = 0; i < bd.length; i++) {
-    if (!bd[i].m) mirror.push({ v: bd[i].v, m: false });
+    if (bd[i].m) continue;                          /* skip cleared */
+    var v = bd[i].v;
+    var comp = (v === 5) ? 5 : (10 - v);           /* complement   */
+    added.push({ v: comp, m: false });
   }
 
-  /* If board is already fully cleared, nothing to add */
-  if (mirror.length === 0) return { bd: bd.slice() };
-
-  /* Append the mirror copy to the board */
-  var nb = bd.slice();
-  for (var i = 0; i < mirror.length; i++) nb.push(mirror[i]);
+  /* Append all complements at the end */
+  for (var i = 0; i < added.length; i++) nb.push(added[i]);
 
   return { bd: nb };
 }
