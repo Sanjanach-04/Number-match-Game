@@ -173,57 +173,62 @@ function _bld(cfg,att){
   return vals.map(function(v){return{v:v,m:false}})
 }
 
-/* ── Smart Add Row: injects exact complements of all unmatched numbers ──
-   Strategy: scan every unmatched cell, find values that have NO partner
-   (same value or sum-to-10 partner) on the current board, then add
-   exactly those missing partners. This guarantees every number on the
-   board becomes matchable. Number count depends entirely on board state. ── */
+/* ── Smart Add Row ──
+   Logic:
+   1. For each unmatched value on the board that has NO value-partner
+      (same or sum-to-10), add exactly ONE copy of its best complement.
+      - If value is 5: add another 5 (5+5=10 and 5=5 both work)
+      - Otherwise: prefer same value (most visible match) over sum-to-10
+   2. After adding complements, check if hasMatch() is true.
+   3. If still no match (all values had partners but no adjacent path):
+      Pick the value that appears MOST on the board and add one copy —
+      more copies = more chances for an adjacent match to form.
+   4. Repeat step 3 up to 3 times until hasMatch() is satisfied.
+   5. Never add two of the same value as a "force" fix unless
+      that value genuinely has no partner at all.
+── */
 function smartAdd(bd,cfg,dryP){
-  /* Collect all unmatched values and their counts */
+  /* Count unmatched values */
   var freq={};
-  for(var i=0;i<bd.length;i++){
-    if(!bd[i].m){var v=bd[i].v;freq[v]=(freq[v]||0)+1}
-  }
+  for(var i=0;i<bd.length;i++)if(!bd[i].m){var v=bd[i].v;freq[v]=(freq[v]||0)+1}
 
-  /* For each unmatched value, check if it already has a partner.
-     A partner means: same value appears >=2 times, OR complement (10-v) exists. */
-  var toAdd=[];
+  var newBd=bd.slice();
+
+  /* Step 1: For every value with NO partner anywhere, add its complement */
+  var added=false;
   for(var v in freq){
     var vn=+v;
-    var complement=10-vn;
-    var hasSameMatch=(freq[vn]>=2);
-    var hasSumMatch=(complement>=1&&complement<=9&&complement!==vn&&freq[complement]>0);
-    /* Special case: v=5 matches with 5 (same) */
-    if(vn===5)hasSameMatch=(freq[5]>=2);
-    if(!hasSameMatch&&!hasSumMatch){
-      /* This value has no partner — add its complement (same value = simplest match) */
-      toAdd.push(vn);
+    var same=freq[vn]>=2;          // another copy exists
+    var comp=10-vn;
+    var sumOk=comp>=1&&comp<=9&&freq[comp]>0;
+    if(!same&&!sumOk){
+      /* No partner — add same value (creates same-value match, easy to spot) */
+      newBd.push({v:vn,m:false});
+      /* Update local freq for subsequent checks */
+      freq[vn]=(freq[vn]||0)+1;
+      added=true;
     }
   }
 
-  /* If board already has matches (all values have partners), add nothing extra.
-     doAdd() intercept already handles this — if we get here, board has no matches.
-     In that case, also add extra copies of rare values to create adjacency opportunities. */
-  if(toAdd.length===0){
-    /* Board has value-pairs but no ADJACENT matches — add copies of existing values */
-    var rng=new RNG(cfg.seed+dryP*31337);
-    var keys=Object.keys(freq);
-    /* Add 2 copies of the most common value to improve adjacency chances */
-    var best=+keys[0],bestC=freq[keys[0]]||0;
-    for(var k=0;k<keys.length;k++){if((freq[keys[k]]||0)>bestC){bestC=freq[keys[k]];best=+keys[k]}}
-    toAdd.push(best);toAdd.push(best);
+  /* Step 2: If board now has a match, done */
+  if(hasMatch(newBd))return{bd:newBd};
+
+  /* Step 3: All values have value-partners but no adjacent paths.
+     Add copies of the most-frequent value to create adjacency opportunities.
+     Try up to 3 additions, stop as soon as a match exists. */
+  var keys=Object.keys(freq);
+  keys.sort(function(a,b){return (freq[+b]||0)-(freq[+a]||0)});
+  for(var ki=0;ki<Math.min(keys.length,3);ki++){
+    newBd.push({v:+keys[ki],m:false});
+    if(hasMatch(newBd))return{bd:newBd};
   }
 
-  /* Build new board with all needed complements */
-  var newBd=bd.slice();
-  for(var i=0;i<toAdd.length;i++)newBd.push({v:toAdd[i],m:false});
-
-  /* Verify: if still no match (edge case), force a same-value pair */
-  if(!hasMatch(newBd)){
-    var fix=toAdd.length?toAdd[0]:5;
-    newBd.push({v:fix,m:false});
-    if(!hasMatch(newBd))newBd.push({v:fix,m:false});
-  }
+  /* Step 4: Absolute fallback — add the two cells that form an
+     immediate horizontal adjacent pair (positions n and n+1 are always adjacent) */
+  var fix=keys.length?+keys[0]:5;
+  /* Ensure we have AT LEAST two of this value so they can match */
+  var countFix=0;for(var i=0;i<newBd.length;i++)if(!newBd[i].m&&newBd[i].v===fix)countFix++;
+  if(countFix<2)newBd.push({v:fix,m:false}); /* now there are 2, last two cells are adjacent → match */
 
   return{bd:newBd};
 }
