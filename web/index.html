@@ -246,16 +246,15 @@ function getRemainingNumbers(bd){
   var o=[];for(var i=0;i<bd.length;i++)if(!bd[i].m)o.push(bd[i].v);return o}
 
 function buildRescueRow(bd){
-  var rem=getRemainingNumbers(bd),freq={},rescue=[],done={};
-  for(var i=0;i<rem.length;i++){var vv=rem[i];freq[vv]=(freq[vv]||0)+1}
-  for(var v=1;v<=9;v++){
-    if(!freq[v]||done[v])continue;
-    var c=comp(v);done[v]=true;done[c]=true;
-    var cv=freq[v]||0,cc=freq[c]||0;
-    if(c===v){if(cv%2!==0)rescue.push(5)}
-    else if(cv>cc){for(var d=0;d<cv-cc;d++)rescue.push(c)}
-    else if(cc>cv){for(var d=0;d<cc-cv;d++)rescue.push(v)}}
-  return rescue}
+  /* For every remaining active cell, append its exact complement.
+     Each cell gets its own dedicated partner -> board fully solvable.
+     comp: 1<->9  2<->8  3<->7  4<->6  5<->5                      */
+  var rescue=[];
+  for(var i=0;i<bd.length;i++){
+    if(!bd[i].m) rescue.push(comp(bd[i].v));
+  }
+  return rescue;
+}
 
 function validateRescue(bd,row){
   /* Valid if: rescue row creates at least one new immediate match.
