@@ -159,142 +159,193 @@ function isCleared(bd){for(var i=0;i<bd.length;i++)if(!bd[i].m)return false;retu
 function makeBoard(lvlIdx){
   if(lvlIdx===0){var r=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5];return r.map(function(v){return{v:v,m:false}})}
   var cfg=LCFG[Math.min(lvlIdx,LCFG.length-1)];
-  for(var att=0;att<25;att++){var bd=_bld(cfg,att);if(hasMatch(bd))return bd}
+  for(var att=0;att<30;att++){var bd=_bld(cfg,att);if(hasMatch(bd))return bd}
   return _bld(cfg,0)
 }
 function _bld(cfg,att){
-  var rng=new RNG(((cfg.seed+att*9973)>>>0)),T=27,pc=Math.max(3,Math.min(13,Math.floor(T*cfg.md/2)));
-  var SV=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]],S10=[[1,9],[2,8],[3,7],[4,6],[5,5],[6,4],[7,3],[8,2],[9,1]];
-  var hidR=Math.min(cfg.hm||0,0.9),vals=[],fp=null;
-  for(var p=0;p<pc&&vals.length+1<T;p++){var cat=rng.bool(hidR)?S10:SV,pair=cat[rng.int(cat.length)];if(!fp)fp=pair.slice();vals.push(pair[0]);vals.push(pair[1])}
-  var tries=0;
-  while(vals.length<T){var v=rng.range(1,9),ok=true;for(var k=0;k<vals.length;k++)if(vals[k]===v||vals[k]+v===10){ok=false;break}vals.push((ok||tries>8)?v:rng.range(1,9));tries=ok?0:tries+1}
-  rng.shuffle(vals);if(fp){vals[0]=fp[0];vals[1]=fp[1]}
+  /* Build board as paired values only — every number has a complement.
+     md = fraction of pairs that are same-value (vs sum-to-10).
+     hm = hidden/noise ratio (extra duplicate values that look hard).
+     T  = 27 cells. We need at least 1 matchable pair on the initial board. */
+  var seed=((cfg.seed+att*9973)>>>0);
+  var rng=new RNG(seed);
+  var T=27;
+
+  /* Pool of all valid pair-types */
+  var SV=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]];
+  var S10=[[1,9],[2,8],[3,7],[4,6],[5,5]];
+  var allPairTypes=SV.concat(S10);
+
+  var vals=[];
+
+  /* Step 1: fill with pairs until we reach T cells.
+     Use md to blend same-value vs sum-to-10 pairs.
+     Each iteration adds exactly 2 values (one pair). */
+  while(vals.length+2<=T){
+    var useSV=rng.bool(cfg.md);
+    var pool=useSV?SV:S10;
+    var pair=pool[rng.int(pool.length)];
+    vals.push(pair[0]);
+    vals.push(pair[1]);
+  }
+
+  /* Step 2: if T is odd (27), add one extra single value that already
+     has a complement somewhere in vals — preserves solvability */
+  if(vals.length<T){
+    /* pick a value that already appears in vals so it has a partner */
+    var freq2={};
+    for(var k=0;k<vals.length;k++)freq2[vals[k]]=(freq2[vals[k]]||0)+1;
+    /* find values whose complement is also present */
+    var candidates=[];
+    for(var v=1;v<=9;v++){
+      var comp=(v===5)?5:(10-v);
+      if((freq2[v]||0)>0&&(freq2[comp]||0)>0)candidates.push(v);
+    }
+    if(candidates.length>0){vals.push(candidates[rng.int(candidates.length)])}
+    else{/* fallback: pick any value from the board */
+      vals.push(vals[rng.int(vals.length)]);
+    }
+  }
+
+  /* Step 3: shuffle, but keep first pair at positions 0,1 (guarantee
+     adjacency match available on row 0 col 0-1) */
+  var first0=vals[0],first1=vals[1];
+  rng.shuffle(vals);
+  /* place the first pair somewhere in row 0 (positions 0-8) adjacently */
+  var pos=rng.int(8); /* 0-7: cols 0-7 so pair fits in col+1 */
+  /* swap them in */
+  var idxA=vals.indexOf(first0),idxB=-1;
+  for(var k=0;k<vals.length;k++){if(k!==idxA&&vals[k]===first1){idxB=k;break}}
+  if(idxA>=0&&idxB>=0){
+    var tmp=vals[pos];vals[pos]=vals[idxA];vals[idxA]=tmp;
+    var posB=pos+1;
+    var tmp2=vals[posB];vals[posB]=vals[idxB];vals[idxB]=tmp2;
+  }
+
   return vals.map(function(v){return{v:v,m:false}})
 }
 
 /* ══════════════════════════════════════════════════════════════
-   INTELLIGENT ADD ROW ENGINE
-   Spec: analyse remaining board → generate minimum rescue row
-   that guarantees ≥1 valid move. No randomness. No orphans.
+   INTELLIGENT ADD ROW ENGINE  — v4 (definitive)
+
+   GOAL  One press → every remaining number has a valid complement
+         → player can clear the entire board without pressing again.
+
+   RULES (from game spec)
+     • Valid pair: same value  OR  sum == 10  (1↔9 2↔8 3↔7 4↔6 5↔5)
+     • complement(v) = (v === 5) ? 5 : (10 - v)
+     • New cells appended at the END of the board array.
+       Two cells placed back-to-back at positions [n] and [n+1] are
+       immediately matchable via the wrap/zipper rule because there are
+       zero cells between them in reading order.
+
+   ALGORITHM
+   Phase 1 — Frequency balance (value-level analysis)
+     Count every active value.  For each unbalanced pair:
+       cross (e.g. 3↔7):  add |count(3) − count(7)| copies of the
+                           less-frequent partner.
+       self  (5↔5):        add 1 if total count of 5s is odd.
+     Result: every value v now has at least one complement c on the
+     board so the board is VALUE-solvable.
+
+   Phase 2 — Adjacency guarantee
+     After Phase 1, check hasMatch().
+     If still false (all pairs blocked by uncleared cells in between),
+     append one extra ADJACENT pair at the very end:
+       pick the first stranded value (no canMatch partner anywhere),
+       push [complement, value] back-to-back → instant mW match.
+
+   Phase 3 — No-orphan check
+     If rescue list is empty AND board had no match to begin with
+     (shouldn't happen after a balanced board is built, but edge-case
+     safety): push the complement of the last active cell.
+
+   CONSTRAINTS
+     • Zero Math.random() calls — fully deterministic.
+     • Never adds a value whose complement is absent.
+     • Minimal: only the exact deficit, never more.
 ══════════════════════════════════════════════════════════════ */
 
-/**
- * analyseBoard(bd)
- * Step 1+2: Collect active numbers and classify each digit.
- * Returns { freq, stranded, hasPairs }
- *   freq     : {value → count} of all active unmatched cells
- *   stranded : array of values that have NO complement anywhere on board
- *              (no same-value partner AND no sum-to-10 partner)
- *   hasPairs : true if at least one value already has a valid complement
- */
-function analyseBoard(bd){
-  var freq={};
-  for(var i=0;i<bd.length;i++)if(!bd[i].m){var v=bd[i].v;freq[v]=(freq[v]||0)+1}
+function smartAdd(bd) {
 
-  var stranded=[];
-  for(var v in freq){
-    var vn=+v;
-    var hasSelf=freq[vn]>=2;          // same-value pair possible
-    var comp=10-vn;
-    var hasComp=comp>=1&&comp<=9&&comp!==vn&&!!freq[comp]; // sum-to-10 partner exists
-    if(!hasSelf&&!hasComp) stranded.push(vn);
+  /* ── Phase 1: frequency count ── */
+  var freq = {};
+  for (var i = 0; i < bd.length; i++) {
+    if (!bd[i].m) { var v = bd[i].v; freq[v] = (freq[v] || 0) + 1; }
   }
 
-  var hasPairs=Object.keys(freq).some(function(v){
-    var vn=+v;
-    return freq[vn]>=2||(10-vn>=1&&10-vn<=9&&10-vn!==vn&&freq[10-vn]>0);
-  });
+  /* ── Phase 1: build balanced rescue list ── */
+  var rescue = [];
+  var seen   = {};
 
-  return{freq:freq,stranded:stranded,hasPairs:hasPairs};
-}
+  for (var v = 1; v <= 9; v++) {
+    if (!freq[v] || seen[v]) continue;
+    var c = (v === 5) ? 5 : (10 - v);
+    seen[v] = true;
+    seen[c] = true;
 
-/**
- * buildRescueRow(analysis)
- * Step 3: Generate the minimum rescue row.
- * Rules (in priority order):
- *  1. For each stranded digit: add its complement (prefer 10-v unless v==5, then add 5)
- *  2. If board already has pairs (hasPairs=true) but no adjacent path:
- *     add ONE copy of the most-frequent value (increases adjacency options)
- *  3. Never add unrelated digits. Never create new orphans.
- */
-function buildRescueRow(analysis){
-  var rescue=[];
-
-  /* Priority 1: rescue every stranded digit */
-  for(var i=0;i<analysis.stranded.length;i++){
-    var v=analysis.stranded[i];
-    var comp=(v===5)?5:(10-v); // 5↔5, others use 10-v
-    rescue.push(comp);
-  }
-
-  /* Priority 2: board has value-pairs but nothing adjacent yet —
-     add ONE copy of the most-frequent value to improve path options */
-  if(rescue.length===0&&analysis.hasPairs){
-    var best=null,bestC=0;
-    for(var v in analysis.freq){if((analysis.freq[+v]||0)>bestC){bestC=analysis.freq[+v];best=+v}}
-    if(best!==null)rescue.push(best);
-  }
-
-  /* If nothing to rescue and no pairs exist (empty board edge case): add 5 */
-  if(rescue.length===0)rescue.push(5);
-
-  return rescue;
-}
-
-/**
- * validateRescueRow(bd, rescueVals)
- * Step 4: Verify the rescue row produces ≥1 valid move.
- * Also check no NEW stranded values are introduced.
- * Returns validated board or null if validation fails.
- */
-function validateRescueRow(bd,rescueVals){
-  var candidate=bd.slice();
-  for(var i=0;i<rescueVals.length;i++)candidate.push({v:rescueVals[i],m:false});
-
-  /* Must have at least one valid match */
-  if(!hasMatch(candidate))return null;
-
-  /* Check no new orphans were created by the rescue row */
-  var analysis=analyseBoard(candidate);
-  if(analysis.stranded.length>analyseBoard(bd).stranded.length)return null;
-
-  return candidate;
-}
-
-/**
- * smartAdd(bd, cfg, dryP)
- * Main entry point: analyse → build rescue → validate → fallback if needed.
- * Returns {bd: newBoard}
- */
-function smartAdd(bd,cfg,dryP){
-  var analysis=analyseBoard(bd);
-
-  /* Build first rescue attempt */
-  var rescueVals=buildRescueRow(analysis);
-  var validated=validateRescueRow(bd,rescueVals);
-  if(validated)return{bd:validated};
-
-  /* Validation failed — recalculate with a stronger rescue:
-     add complement for EVERY value that doesn't yet have ≥2 copies */
-  var rescueV2=[];
-  for(var v in analysis.freq){
-    var vn=+v;
-    var comp=(vn===5)?5:(10-vn);
-    if(!(analysis.freq[vn]>=2||(comp!==vn&&analysis.freq[comp]>0))){
-      rescueV2.push(comp);
+    if (c === v) {
+      /* 5↔5 self-pair: total must be even */
+      if ((freq[5] || 0) % 2 !== 0) rescue.push(5);
+    } else {
+      var cv = freq[v] || 0;
+      var cc = freq[c] || 0;
+      /* add the deficit of whichever side is short */
+      if (cv > cc) {
+        for (var d = 0; d < cv - cc; d++) rescue.push(c);
+      } else if (cc > cv) {
+        for (var d = 0; d < cc - cv; d++) rescue.push(v);
+      }
     }
   }
-  if(rescueV2.length===0)rescueV2.push(5); /* final fallback value */
-  var validated2=validateRescueRow(bd,rescueV2);
-  if(validated2)return{bd:validated2};
 
-  /* Absolute fallback: add two of the same value (guaranteed same-value match) */
-  var anyActive=null;
-  for(var i=bd.length-1;i>=0;i--)if(!bd[i].m){anyActive=bd[i].v;break}
-  var fallbackVal=anyActive||5;
-  var fallbackBd=bd.concat([{v:fallbackVal,m:false},{v:fallbackVal,m:false}]);
-  return{bd:fallbackBd};
+  /* ── Build new board with rescue appended ── */
+  var nb = bd.slice();
+  for (var i = 0; i < rescue.length; i++) nb.push({ v: rescue[i], m: false });
+
+  /* ── Phase 2: adjacency guarantee ── */
+  /* After balancing, every value has a complement VALUE on the board.
+     But canMatch() may still return false if all same-value or
+     complementary pairs are separated by uncleared cells on every
+     possible path.  Fix: push one guaranteed-adjacent pair at the end.
+     Two cells at indices [n] and [n+1] satisfy mW trivially (no cells
+     between them) so they are always an immediate legal match. */
+  if (!hasMatch(nb)) {
+    /* find the first active cell that still has no canMatch partner */
+    var strandedV = null;
+    outer: for (var i = 0; i < nb.length; i++) {
+      if (nb[i].m) continue;
+      for (var j = 0; j < nb.length; j++) {
+        if (i !== j && canMatch(nb, i, j)) continue outer; /* has partner */
+      }
+      strandedV = nb[i].v;
+      break;
+    }
+    if (strandedV === null) {
+      /* every cell has a partner but hasMatch still false — shouldn't
+         happen; pick any active value as a safety measure */
+      for (var i = nb.length - 1; i >= 0; i--) {
+        if (!nb[i].m) { strandedV = nb[i].v; break; }
+      }
+    }
+    if (strandedV !== null) {
+      var cv = (strandedV === 5) ? 5 : (10 - strandedV);
+      /* push pair back-to-back → mW sees 0 cells between them */
+      nb.push({ v: cv,        m: false });
+      nb.push({ v: strandedV, m: false });
+    }
+  }
+
+  /* ── Phase 3: absolute fallback (empty board edge case) ── */
+  if (rescue.length === 0 && !hasMatch(nb)) {
+    var lv = 5;
+    for (var i = nb.length - 1; i >= 0; i--) { if (!nb[i].m) { lv = nb[i].v; break; } }
+    var lc = (lv === 5) ? 5 : (10 - lv);
+    nb.push({ v: lc, m: false });
+    nb.push({ v: lv, m: false });
+  }
+
+  return { bd: nb };
 }
 
 /* ── Sound ── */
@@ -373,13 +424,11 @@ function hClear(){if(G.hA>=0){var e=gc(G.hA);if(e){e.classList.remove('ha');e.cl
 function doAdd(){if(G.arUsed>=MAXAR)return;if(hasMatch(G.board)){sov('oConfirm');return}doAddActual()}
 function doAddActual(){
   if(G.arUsed>=MAXAR)return;hClear();G.hA=-1;G.hB=-1;
-  if(G.msAdd===0)G.dryP++;else G.dryP=0;G.msAdd=0;
-  var cfg=LCFG[Math.min(G.lvl,LCFG.length-1)];
-  var res=smartAdd(G.board,cfg,G.dryP);
+  var res=smartAdd(G.board);
   var prevLen=G.board.length;
-  G.board=res.bd;  // board now has 2-4+ new cells
+  G.board=res.bd;
   G.arUsed++;
-  /* Append ALL new cells to the DOM grid */
+  /* Append all new cells to DOM */
   var g=ge('grid');
   for(var i=prevLen;i<G.board.length;i++){
     g.appendChild(mkc(i,true));
