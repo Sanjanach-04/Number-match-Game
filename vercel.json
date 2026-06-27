@@ -1,5 +1,8 @@
 {
   "version": 2,
   "outputDirectory": "web",
-  "public": true
+  "public": true,
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
