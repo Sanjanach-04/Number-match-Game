@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,11 +6,10 @@
 <title>Number Match</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',sans-serif;display:flex;justify-content:center;min-height:100vh}
+body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-content:center;min-height:100vh}
 #app{width:100%;max-width:430px;height:100vh;position:relative;overflow:hidden;background:#fff;box-shadow:0 0 30px rgba(0,0,0,.08)}
-.scr{display:none;flex-direction:column;position:absolute;top:0;left:0;right:0;bottom:0}
+.scr{display:none;flex-direction:column;position:absolute;inset:0}
 .scr.on{display:flex}
-/* Level select */
 #sLS{background:#fff;overflow-y:auto;align-items:center;padding:24px 14px 16px;gap:12px}
 .ls-title{font-size:24px;font-weight:900;color:#e94560}
 .ls-sub{font-size:12px;color:#888;text-align:center;line-height:1.5}
@@ -23,7 +22,6 @@ body{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',sans-serif;display:
 .lb .ln{font-size:22px;font-weight:900;color:#1a1a2e;display:block}
 .lb.relief .ln{color:#c07800}
 .lb .le{position:absolute;top:3px;right:3px;font-size:8px;font-weight:900;background:#f5a623;color:#000;border-radius:3px;padding:1px 4px}
-/* Game header */
 #sG{background:#f8f9fb;flex-direction:column}
 .hdr{background:#fff;padding:8px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;border-bottom:1px solid #e8e8e8}
 .hbk{background:none;border:none;color:#e94560;font-size:20px;cursor:pointer;padding:2px 8px;border-radius:6px;line-height:1}
@@ -31,54 +29,47 @@ body{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',sans-serif;display:
 .bdg{padding:3px 7px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}
 .br{background:#fff8e6;color:#c07800;border:1px solid #fdd790}
 .bm{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
-#hBtn{background:#fff8e6;border:1px solid #f5a623;color:#c07800;border-radius:8px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
-#hBtn:hover{background:#fff3cc}
-/* Grid */
-.sa{flex:1;overflow-y:auto;padding:8px 6px;-webkit-overflow-scrolling:touch;background:#f8f9fb}
+#hBtn{background:#fff8e6;border:1px solid #f5a623;color:#c07800;border-radius:8px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer}
+.sa{flex:1;overflow-y:auto;padding:8px 6px;background:#f8f9fb}
 .sa::-webkit-scrollbar{width:3px}
 .sa::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
 #grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}
-.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:clamp(10px,3vw,15px);font-weight:800;cursor:pointer;background:#fff;border:1.5px solid #e0e4ea;color:#1a1a2e;transition:background .1s,transform .08s,border-color .1s;user-select:none;-webkit-user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:clamp(10px,3vw,15px);font-weight:800;cursor:pointer;background:#fff;border:1.5px solid #e0e4ea;color:#1a1a2e;transition:background .1s,transform .08s;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .cell:hover:not(.cm):not(.cs){border-color:#e94560;background:#fff5f7}
 .cell:active:not(.cm){transform:scale(.87)}
-.cs{background:#e94560!important;border-color:#c73652!important;color:#fff!important;transform:scale(1.08);z-index:5;box-shadow:0 2px 8px rgba(233,69,96,.3)!important}
-.cm{background:#f5f5f5!important;border-color:#ebebeb!important;color:#ccc!important;text-decoration:line-through;cursor:default;pointer-events:none;box-shadow:none!important}
+.cs{background:#e94560!important;border-color:#c73652!important;color:#fff!important;transform:scale(1.08);z-index:5}
+.cm{background:#f5f5f5!important;border-color:#ebebeb!important;color:#ccc!important;text-decoration:line-through;cursor:default;pointer-events:none}
 .ha{animation:hpa .75s ease-in-out infinite alternate!important;border-color:#f5a623!important}
 .hb{animation:hpb .75s ease-in-out infinite alternate!important;border-color:#22c55e!important}
-@keyframes hpa{from{background:#fff}to{background:#fffbeb;box-shadow:0 0 0 2px rgba(245,166,35,.3)}}
-@keyframes hpb{from{background:#fff}to{background:#f0fdf4;box-shadow:0 0 0 2px rgba(34,197,94,.3)}}
+@keyframes hpa{from{background:#fff}to{background:#fffbeb;box-shadow:0 0 0 2px rgba(245,166,35,.35)}}
+@keyframes hpb{from{background:#fff}to{background:#f0fdf4;box-shadow:0 0 0 2px rgba(34,197,94,.35)}}
 .fok{animation:fok .38s ease forwards}
 @keyframes fok{0%{background:#22c55e;color:#fff;border-color:#16a34a}100%{background:#fff;color:#1a1a2e;border-color:#e0e4ea}}
 .ferr{animation:ferr .38s ease forwards}
-@keyframes ferr{0%,45%{background:#e94560;color:#fff;border-color:#c73652}100%{background:#fff;color:#1a1a2e;border-color:#e0e4ea}}
+@keyframes ferr{0%,45%{background:#e94560;color:#fff}100%{background:#fff;color:#1a1a2e;border-color:#e0e4ea}}
 .nr{animation:npop .28s cubic-bezier(.34,1.56,.64,1)}
 @keyframes npop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
-/* Footer */
 .ft{background:#fff;padding:8px 11px;display:flex;align-items:center;gap:7px;flex-shrink:0;border-top:1px solid #e8e8e8}
-.badd{flex:1;background:#e94560;border:none;color:#fff;border-radius:9px;padding:11px 6px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;box-shadow:0 2px 8px rgba(233,69,96,.25)}
-.badd:hover:not(:disabled){background:#c73652}
+.badd{flex:1;background:#e94560;border:none;color:#fff;border-radius:9px;padding:11px 6px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(233,69,96,.25)}
 .badd:disabled{background:#ebebeb;color:#bbb;cursor:not-allowed;box-shadow:none}
-.fic{background:#f5f5f5;border:1px solid #e8e8e8;color:#888;border-radius:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;transition:all .12s}
+.fic{background:#f5f5f5;border:1px solid #e8e8e8;color:#888;border-radius:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0}
 .fic:hover{background:#ffe8ec;color:#e94560;border-color:#e94560}
-/* Overlays */
-.ov{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px 18px;gap:13px;z-index:100;backdrop-filter:blur(2px)}
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px;gap:13px;z-index:100}
 .ov.on{display:flex}
+.ov-box{background:#fff;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:280px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.15)}
 .ov-ic{font-size:50px;line-height:1}
 .ov-ti{font-size:22px;font-weight:700;color:#1a1a2e}
 .ov-su{font-size:13px;color:#555;max-width:260px;line-height:1.5}
 .ov-cd{font-size:28px;font-weight:700;color:#e94560;min-height:38px}
-.ov-box{background:#fff;border-radius:16px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:280px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.15)}
-.bp{padding:11px 26px;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#e94560;color:#fff;width:100%;max-width:220px;box-shadow:0 2px 8px rgba(233,69,96,.25)}
-.bp:hover{background:#c73652}
+.bp{padding:11px 26px;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;border:none;background:#e94560;color:#fff;width:100%;max-width:220px}
 .bs{padding:9px 26px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid #e8e8e8;background:#fff;color:#888;width:100%;max-width:220px}
-.bs:hover{background:#f5f5f5}
 </style>
 </head>
 <body>
 <div id="app">
 <div id="sLS" class="scr on">
   <div class="ls-title">&#128290; Number Match</div>
-  <div class="ls-sub">Match same numbers or pairs summing to 10.<br>Cells must be adjacent (horiz/vert/diag/wrap).</div>
+  <div class="ls-sub">Match same numbers or pairs summing to 10.<br>Must be adjacent: horiz / vert / diagonal / wrap.</div>
   <div class="ls-label">Select Level</div>
   <div id="lgrid" class="lgrid"></div>
 </div>
@@ -86,15 +77,15 @@ body{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',sans-serif;display:
   <div class="hdr">
     <button class="hbk" id="bBack">&#8592;</button>
     <span class="hlv" id="lLv">Level 1</span>
-    <span class="bdg br" id="lRow">+Num:6</span>
+    <span class="bdg br" id="lRow">+6</span>
     <span class="bdg bm" id="lMat">27 left</span>
     <button id="hBtn">&#128161; Hint</button>
   </div>
   <div class="sa" id="sa"><div id="grid"></div></div>
   <div class="ft">
     <button class="badd" id="bAdd">&#65291; Add Number (6)</button>
-    <div class="fic" id="hFic" title="Hint">&#128161;</div>
-    <div class="fic" id="bRst" title="Restart">&#8635;</div>
+    <div class="fic" id="hFic">&#128161;</div>
+    <div class="fic" id="bRst">&#8635;</div>
   </div>
 </div>
 <div class="ov" id="oWin">
@@ -111,465 +102,207 @@ body{background:#f0f2f5;color:#1a1a2e;font-family:'Segoe UI',sans-serif;display:
   <div class="ov-box">
     <div class="ov-ic">&#128557;</div>
     <div class="ov-ti" style="color:#e94560">No More Moves</div>
-    <div class="ov-su">No valid matches remain and all Add uses are gone.</div>
+    <div class="ov-su">Add Rows exhausted and no valid matches remain.</div>
     <button class="bp" id="bRetry">Try Again</button>
     <button class="bs" id="bOM">Menu</button>
   </div>
 </div>
-
-<!-- Add Row confirmation dialog -->
 <div class="ov" id="oConfirm">
   <div class="ov-box">
     <div class="ov-ic">&#128269;</div>
     <div class="ov-ti" style="color:#e94560">Matches Available!</div>
-    <div class="ov-su">There are still valid moves on the board. Are you sure you want to add a number?</div>
-    <button class="bp" id="bConfirmYes">Yes, Add Number</button>
-    <button class="bs" id="bConfirmNo">No, I'll Keep Looking</button>
+    <div class="ov-su">Valid moves still exist. Add a number anyway?</div>
+    <button class="bp" id="bCY">Yes, Add Number</button>
+    <button class="bs" id="bCN">No, Keep Looking</button>
   </div>
 </div>
 </div>
 <script>
-/* ── rng.js inlined ── */
-function RNG(seed){this.s=((seed^57005)>>>0)||1}
+/* NUMBER MATCH — complete self-contained engine */
+/* RNG: deterministic XOR-shift, unique per level */
+function RNG(s){this.s=((s^57005)>>>0)||1}
 RNG.prototype.next=function(){var s=this.s;s^=s<<13;s^=s>>17;s^=s<<5;return this.s=s>>>0};
 RNG.prototype.int=function(n){return n<=1?0:this.next()%n};
 RNG.prototype.bool=function(p){return this.next()/4294967295<p};
 RNG.prototype.range=function(a,b){return a+this.int(b-a+1)};
-RNG.prototype.shuffle=function(arr){for(var i=arr.length-1;i>0;i--){var j=this.int(i+1);var t=arr[i];arr[i]=arr[j];arr[j]=t}};
+RNG.prototype.shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=this.int(i+1),t=a[i];a[i]=a[j];a[j]=t}};
 
-/* ── levelConfig.js inlined ── */
-var LEVEL_CONFIG=[
-  {matchDensity:0.90,decoyDensity:0.00,pairDistance:2,hiddenMatches:0.00,expectedAddRow:1,difficultyScore:1,seed:1000003},
-  {matchDensity:0.82,decoyDensity:0.08,pairDistance:3,hiddenMatches:0.10,expectedAddRow:1,difficultyScore:2,seed:1000033},
-  {matchDensity:0.72,decoyDensity:0.18,pairDistance:5,hiddenMatches:0.20,expectedAddRow:2,difficultyScore:3,seed:1000037},
-  {matchDensity:0.62,decoyDensity:0.28,pairDistance:6,hiddenMatches:0.30,expectedAddRow:2,difficultyScore:4,seed:1000039},
-  {matchDensity:0.50,decoyDensity:0.40,pairDistance:8,hiddenMatches:0.45,expectedAddRow:3,difficultyScore:6,seed:1000081},
-  {matchDensity:0.72,decoyDensity:0.18,pairDistance:4,hiddenMatches:0.20,expectedAddRow:2,difficultyScore:3,seed:1000099},
-  {matchDensity:0.55,decoyDensity:0.35,pairDistance:7,hiddenMatches:0.40,expectedAddRow:3,difficultyScore:6,seed:1000117},
-  {matchDensity:0.46,decoyDensity:0.44,pairDistance:8,hiddenMatches:0.50,expectedAddRow:4,difficultyScore:7,seed:1000121},
-  {matchDensity:0.40,decoyDensity:0.52,pairDistance:9,hiddenMatches:0.60,expectedAddRow:4,difficultyScore:8,seed:1000133},
-  {matchDensity:0.34,decoyDensity:0.60,pairDistance:9,hiddenMatches:0.70,expectedAddRow:5,difficultyScore:10,seed:1000151},
-  {matchDensity:0.72,decoyDensity:0.18,pairDistance:4,hiddenMatches:0.20,expectedAddRow:2,difficultyScore:3,seed:1000159}
+/* Level config — each has a UNIQUE seed and difficulty params */
+var LCFG=[
+  {md:0.90,hm:0.00,dr:0.00,seed:3001003}, /* L1  easy    */
+  {md:0.82,hm:0.10,dr:0.10,seed:3001033}, /* L2          */
+  {md:0.72,hm:0.20,dr:0.20,seed:3001037}, /* L3  normal  */
+  {md:0.62,hm:0.30,dr:0.30,seed:3001039}, /* L4          */
+  {md:0.50,hm:0.45,dr:0.42,seed:3001081}, /* L5  hard    */
+  {md:0.72,hm:0.20,dr:0.20,seed:3001099}, /* L6  RELIEF  */
+  {md:0.55,hm:0.40,dr:0.38,seed:3001117}, /* L7          */
+  {md:0.46,hm:0.50,dr:0.48,seed:3001121}, /* L8          */
+  {md:0.40,hm:0.60,dr:0.55,seed:3001133}, /* L9          */
+  {md:0.34,hm:0.70,dr:0.62,seed:3001151}, /* L10 hardest */
+  {md:0.72,hm:0.20,dr:0.20,seed:3001159}  /* L11 RELIEF  */
 ];
-function getLevelConfig(i){return LEVEL_CONFIG[Math.min(i,LEVEL_CONFIG.length-1)]}
-var RELIEF_LEVELS={5:true,10:true};
-function isReliefLevel(i){return!!RELIEF_LEVELS[i]}
+var RELIEF_IDX={5:1,10:1};
+var NC=9, MAXAR=6;
 
-/* ── matchFinder.js inlined ── */
-var COLS=9;
-function valuesMatch(va,vb){return va===vb||va+vb===10}
-function checkHorizontal(board,a,b){
-  var ra=Math.floor(a/COLS),rb=Math.floor(b/COLS);
-  if(ra!==rb)return false;
-  var lo=Math.min(a,b),hi=Math.max(a,b);
-  for(var i=lo+1;i<hi;i++)if(!board[i].m)return false;
-  return true;
-}
-function checkVertical(board,a,b){
-  var ca=a%COLS,cb=b%COLS;
-  if(ca!==cb)return false;
-  var ra=Math.floor(a/COLS),rb=Math.floor(b/COLS);
-  var rLo=Math.min(ra,rb),rHi=Math.max(ra,rb);
-  for(var r=rLo+1;r<rHi;r++){var cell=board[r*COLS+ca];if(cell&&!cell.m)return false}
-  return true;
-}
-function checkDiagonal(board,a,b){
-  var ra=Math.floor(a/COLS),ca=a%COLS;
-  var rb=Math.floor(b/COLS),cb=b%COLS;
-  var dr=rb-ra,dc=cb-ca;
-  if(Math.abs(dr)!==Math.abs(dc)||dr===0)return false;
-  var sr=dr>0?1:-1,sc=dc>0?1:-1;
-  var r=ra+sr,c=ca+sc;
-  while(r!==rb||c!==cb){var idx=r*COLS+c;if(idx>=0&&idx<board.length&&board[idx]&&!board[idx].m)return false;r+=sr;c+=sc}
-  return true;
-}
-function checkWrap(board,a,b){
-  var lo=Math.min(a,b),hi=Math.max(a,b);
-  for(var i=lo+1;i<hi;i++)if(!board[i].m)return false;
-  return true;
-}
-function canMatch(board,a,b){
-  if(a===b||board[a].m||board[b].m)return false;
-  if(!valuesMatch(board[a].v,board[b].v))return false;
-  return checkHorizontal(board,a,b)||checkVertical(board,a,b)||checkDiagonal(board,a,b)||checkWrap(board,a,b);
-}
-function findAllMatches(board){
-  var pairs=[];
-  for(var i=0;i<board.length;i++){if(board[i].m)continue;for(var j=i+1;j<board.length;j++){if(board[j].m)continue;if(canMatch(board,i,j))pairs.push([i,j])}}
-  return pairs;
-}
-function hasAnyMatch(board){
-  for(var i=0;i<board.length;i++){if(board[i].m)continue;for(var j=i+1;j<board.length;j++){if(board[j].m)continue;if(canMatch(board,i,j))return true}}
-  return false;
-}
-function isBoardCleared(board){for(var i=0;i<board.length;i++)if(!board[i].m)return false;return true}
+/* ── Match rules — all take explicit (bd,a,b) ── */
+function vM(va,vb){return va===vb||va+vb===10}
+function mH(bd,a,b){if(Math.floor(a/NC)!==Math.floor(b/NC))return false;var lo=Math.min(a,b),hi=Math.max(a,b);for(var i=lo+1;i<hi;i++)if(!bd[i].m)return false;return true}
+function mV(bd,a,b){if(a%NC!==b%NC)return false;var ra=Math.floor(a/NC),rb=Math.floor(b/NC),lo=Math.min(ra,rb),hi=Math.max(ra,rb),col=a%NC;for(var r=lo+1;r<hi;r++){var c=bd[r*NC+col];if(c&&!c.m)return false}return true}
+function mD(bd,a,b){var ra=Math.floor(a/NC),ca=a%NC,rb=Math.floor(b/NC),cb=b%NC,dr=rb-ra,dc=cb-ca;if(Math.abs(dr)!==Math.abs(dc)||dr===0)return false;var sr=dr>0?1:-1,sc=dc>0?1:-1,r=ra+sr,c=ca+sc;while(r!==rb||c!==cb){var idx=r*NC+c;if(bd[idx]&&!bd[idx].m)return false;r+=sr;c+=sc}return true}
+function mW(bd,a,b){var lo=Math.min(a,b),hi=Math.max(a,b);for(var i=lo+1;i<hi;i++)if(!bd[i].m)return false;return true}
+function canMatch(bd,a,b){if(a===b||!bd[a]||!bd[b]||bd[a].m||bd[b].m)return false;if(!vM(bd[a].v,bd[b].v))return false;return mH(bd,a,b)||mV(bd,a,b)||mD(bd,a,b)||mW(bd,a,b)}
+function allPairs(bd){var p=[];for(var i=0;i<bd.length;i++){if(bd[i].m)continue;for(var j=i+1;j<bd.length;j++){if(bd[j].m)continue;if(canMatch(bd,i,j))p.push([i,j])}}return p}
+function hasMatch(bd){for(var i=0;i<bd.length;i++){if(bd[i].m)continue;for(var j=i+1;j<bd.length;j++){if(bd[j].m)continue;if(canMatch(bd,i,j))return true}}return false}
+function isCleared(bd){for(var i=0;i<bd.length;i++)if(!bd[i].m)return false;return true}
 
-/* ── boardGenerator.js inlined ── */
-function generateBoard(cfg,attempt){
-  var seed=((cfg.seed+(attempt||0)*7919)>>>0);
-  var rng=new RNG(seed);
-  var TOTAL=27;
-  var pairCount=Math.max(3,Math.min(13,Math.floor(TOTAL*cfg.matchDensity/2)));
-  var SAME_VAL=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]];
-  var SUM_TEN=[[1,9],[2,8],[3,7],[4,6],[5,5],[6,4],[7,3],[8,2],[9,1]];
-  var hiddenRatio=Math.min(cfg.hiddenMatches||0,0.9);
-  var vals=[],firstPair=null;
-  for(var p=0;p<pairCount&&vals.length+1<TOTAL;p++){
-    var useHidden=rng.bool(hiddenRatio);
-    var catalog=useHidden?SUM_TEN:SAME_VAL;
-    var pair=catalog[rng.int(catalog.length)];
-    if(!firstPair)firstPair=pair.slice();
-    vals.push(pair[0]);vals.push(pair[1]);
-  }
-  var attempts=0;
-  while(vals.length<TOTAL){
-    var v=rng.range(1,9),isDecoy=true;
-    for(var k=0;k<vals.length;k++){if(vals[k]===v||vals[k]+v===10){isDecoy=false;break}}
-    vals.push((isDecoy||attempts>8)?v:rng.range(1,9));
-    attempts=isDecoy?0:attempts+1;
-  }
-  rng.shuffle(vals);
-  if(firstPair){vals[0]=firstPair[0];vals[1]=firstPair[1]}
-  return vals.map(function(v){return{v:v,m:false}});
+/* ── Board generator — unique per level ── */
+function makeBoard(lvlIdx){
+  if(lvlIdx===0){var r=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5];return r.map(function(v){return{v:v,m:false}})}
+  var cfg=LCFG[Math.min(lvlIdx,LCFG.length-1)];
+  for(var att=0;att<25;att++){var bd=_bld(cfg,att);if(hasMatch(bd))return bd}
+  return _bld(cfg,0)
 }
-function generateLevel1Board(){
-  var raw=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5];
-  return raw.map(function(v){return{v:v,m:false}});
-}
-function getBoardWithValidation(lvlIndex){
-  if(lvlIndex===0)return generateLevel1Board();
-  var cfg=getLevelConfig(lvlIndex);
-  for(var attempt=0;attempt<20;attempt++){
-    var b=generateBoard(cfg,attempt);
-    // Use the raw 3-arg matchFinder directly (before adapter override)
-    if(_ha(b))return b;
-  }
-  // Should never reach here since pair[0,1] always adjacent
-  return generateBoard(cfg,0);
+function _bld(cfg,att){
+  var rng=new RNG(((cfg.seed+att*9973)>>>0)),T=27,pc=Math.max(3,Math.min(13,Math.floor(T*cfg.md/2)));
+  var SV=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]],S10=[[1,9],[2,8],[3,7],[4,6],[5,5],[6,4],[7,3],[8,2],[9,1]];
+  var hidR=Math.min(cfg.hm||0,0.9),vals=[],fp=null;
+  for(var p=0;p<pc&&vals.length+1<T;p++){var cat=rng.bool(hidR)?S10:SV,pair=cat[rng.int(cat.length)];if(!fp)fp=pair.slice();vals.push(pair[0]);vals.push(pair[1])}
+  var tries=0;
+  while(vals.length<T){var v=rng.range(1,9),ok=true;for(var k=0;k<vals.length;k++)if(vals[k]===v||vals[k]+v===10){ok=false;break}vals.push((ok||tries>8)?v:rng.range(1,9));tries=ok?0:tries+1}
+  rng.shuffle(vals);if(fp){vals[0]=fp[0];vals[1]=fp[1]}
+  return vals.map(function(v){return{v:v,m:false}})
 }
 
-/* ── addRowEngine.js inlined ── */
-function analyzeBoard(board){
-  var active=[];
-  for(var i=0;i<board.length;i++)if(!board[i].m)active.push(i);
-  var freq={};
-  for(var i=0;i<active.length;i++){var v=board[active[i]].v;freq[v]=(freq[v]||0)+1}
-  var rowCount=Math.ceil(board.length/COLS);
-  var stragglers=[];
-  for(var r=0;r<rowCount;r++){
-    var rowActive=[];
-    for(var c=0;c<COLS;c++){var idx=r*COLS+c;if(idx<board.length&&!board[idx].m)rowActive.push(board[idx].v)}
-    if(rowActive.length===1)stragglers.push(rowActive[0]);
-  }
-  var isolated=[];
-  for(var i=0;i<active.length;i++){
-    var v=board[active[i]].v,hasPartner=false;
-    for(var j=0;j<active.length;j++){if(i!==j){var w=board[active[j]].v;if(v===w||v+w===10){hasPartner=true;break}}}
-    if(!hasPartner)isolated.push(v);
-  }
-  return{active:active,freq:freq,stragglers:stragglers,isolated:isolated};
-}
-function buildCandidateList(board,isRescue){
-  var analysis=analyzeBoard(board);
-  var candidates=[];
-  for(var i=0;i<analysis.stragglers.length;i++)if(candidates.indexOf(analysis.stragglers[i])===-1)candidates.push(analysis.stragglers[i]);
-  for(var i=0;i<analysis.isolated.length;i++)if(candidates.indexOf(analysis.isolated[i])===-1)candidates.push(analysis.isolated[i]);
-  var freqPairs=[];for(var v in analysis.freq)freqPairs.push([+v,analysis.freq[v]]);
-  freqPairs.sort(function(a,b){return isRescue?b[1]-a[1]:a[1]-b[1]});
-  for(var i=0;i<freqPairs.length;i++)if(candidates.indexOf(freqPairs[i][0])===-1)candidates.push(freqPairs[i][0]);
-  for(var v=1;v<=9;v++)if(candidates.indexOf(v)===-1)candidates.push(v);
-  return candidates;
-}
-function executeAddRow(board,cfg,dryPresses){
-  var isRescue=(dryPresses>=2);
-  var candidates=buildCandidateList(board,isRescue);
-  for(var ci=0;ci<candidates.length;ci++){
-    var val=candidates[ci];
-    var newBoard=board.concat([{v:val,m:false}]);
-    if(_ha(newBoard))return{board:newBoard,val:val,wasRescue:isRescue};
-  }
-  var lastActive=null;
-  for(var i=board.length-1;i>=0;i--){if(!board[i].m){lastActive=board[i].v;break}}
-  var rescueVal=lastActive||1;
-  return{board:board.concat([{v:rescueVal,m:false}]),val:rescueVal,wasRescue:true};
+/* ── Smart Add Row ── */
+function smartAdd(bd,cfg,dryP){
+  var freq={},actIdx=[];
+  for(var i=0;i<bd.length;i++)if(!bd[i].m){var v=bd[i].v;freq[v]=(freq[v]||0)+1;actIdx.push(i)}
+  var stragg=[],nr=Math.ceil(bd.length/NC);
+  for(var r=0;r<nr;r++){var ac=[];for(var c=0;c<NC;c++){var idx=r*NC+c;if(idx<bd.length&&!bd[idx].m)ac.push(bd[idx].v)}if(ac.length===1)stragg.push(ac[0])}
+  var iso=[];
+  for(var i=0;i<actIdx.length;i++){var vv=bd[actIdx[i]].v,found=false;for(var j=0;j<actIdx.length;j++)if(i!==j&&vM(vv,bd[actIdx[j]].v)){found=true;break}if(!found&&iso.indexOf(vv)<0)iso.push(vv)}
+  var cands=[];
+  stragg.forEach(function(v){if(cands.indexOf(v)<0)cands.push(v)});
+  iso.forEach(function(v){if(cands.indexOf(v)<0)cands.push(v)});
+  var fp2=[];for(var v in freq)fp2.push([+v,freq[v]]);
+  fp2.sort(function(a,b){return dryP>=2?b[1]-a[1]:a[1]-b[1]});
+  fp2.forEach(function(p){if(cands.indexOf(p[0])<0)cands.push(p[0])});
+  for(var v=1;v<=9;v++)if(cands.indexOf(v)<0)cands.push(v);
+  for(var ci=0;ci<cands.length;ci++){var nb=bd.concat([{v:cands[ci],m:false}]);if(hasMatch(nb))return{bd:nb,v:cands[ci]}}
+  var lv=bd.length?bd[bd.length-1].v:1;
+  return{bd:bd.concat([{v:lv,m:false}]),v:lv}
 }
 
-/* ── Adapters: 2-arg wrappers using global `board` ── */
-var _cm=canMatch,_fa=findAllMatches,_ha=hasAnyMatch,_ic=isBoardCleared;
-canMatch      =function(a,b){return _cm(board,a,b)};
-findAllMatches=function(){return _fa(board)};
-hasAnyMatch   =function(){return _ha(board)};
-allDone       =function(){return _ic(board)};
-</script>
-<script>
+/* ── Sound ── */
 var _ac=null;
-function getAC(){if(!_ac){try{_ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}return _ac}
-function playTone(freq,dur,type,vol){
-  var ac=getAC(); if(!ac) return;
-  var o=ac.createOscillator(), g=ac.createGain();
-  o.type=type||'sine'; o.frequency.value=freq;
-  g.gain.setValueAtTime(vol||0.18,ac.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
-  o.connect(g); g.connect(ac.destination);
-  o.start(); o.stop(ac.currentTime+dur);
-}
-function sndTap()  { playTone(520,0.08,'sine',0.15); }
-function sndMatch(){ playTone(660,0.06,'sine',0.2); setTimeout(function(){playTone(880,0.12,'sine',0.18)},70); }
-function sndError(){ playTone(220,0.15,'sawtooth',0.12); }
-function sndWin()  { [523,659,784,1047].forEach(function(f,i){setTimeout(function(){playTone(f,0.2,'sine',0.2)},i*100)}); }
-function sndAdd()  { playTone(440,0.1,'triangle',0.14); }
-</script>
-<script>
-/* ============================================================
-   ALGORITHM WRITEUP:
-   
-   SEEDING (Part A):
-   - Use a deterministic LCG-based RNG seeded per level.
-   - Build board as PAIRS first (same-value or sum-to-10),
-     then fill remaining slots with decoys.
-   - matchDensity controls pair count (Level 1: 0.90 = nearly all pairs).
-   - frictionFactor shifts pair type from same-value (easy to spot)
-     toward sum-to-10 (harder). Level 1 friction=0 → all same-value pairs.
-   - Guaranteed: positions [0,1] always hold a valid adjacent pair,
-     so the board always has at least one immediate match.
-   
-   ADD ROW (Part B):
-   - Scan unmatched values on board.
-   - Stragglers (rows with 1 cell left) get their complement injected first.
-   - Rescue mechanic: if dryPresses >= 2 (Add Row used twice with 0 matches),
-     inject 2 guaranteed adjacent same-value pairs at the front of the row.
-   - Remaining slots: helpers (complements of unmatched values) vs decoys
-     at a ratio controlled by decoyRatio (scales with level).
-   
-   SAWTOOTH CURVE:
-   L1-5 rising, L6 relief, L7-10 rising higher, L11 relief.
-   ============================================================ */
+function gAC(){if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return _ac}
+function tone(f,d,t,vol){var ac=gAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(vol||.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
+function sTap(){tone(520,.08)}function sOk(){tone(660,.06);setTimeout(function(){tone(880,.12)},70)}
+function sErr(){tone(220,.15,'sawtooth',.1)}function sAdd(){tone(440,.1,'triangle',.12)}
+function sWin(){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){tone(f,.2)},i*100)})}
 
-/* ── Constants (used by addRowEngine.js too) ── */
-var C = 9, MAXAR = 6;
-
-/* ── State ── */
-var board=[],rows=0,lvl=0,sel=-1,arUsed=0,dryPresses=0,hA=-1,hB=-1,autoTid=null;
-// Adaptive difficulty tracking
-var matchesSinceLastAdd=0; // resets on each Add Row press; if 0 when Add Row pressed = dry press
+/* ── Game state ── */
+var G={board:[],lvl:0,sel:-1,arUsed:0,dryP:0,msAdd:0,hA:-1,hB:-1,autoT:null};
 
 /* ── DOM helpers ── */
 function ge(id){return document.getElementById(id)}
-function showScr(id){ge('sLS').classList.remove('on');ge('sG').classList.remove('on');ge(id).classList.add('on')}
-function showOv(id){ge(id).classList.add('on')}
-function hideOv(id){ge(id).classList.remove('on')}
-
-/* ── Board generation (deterministic) — delegated to boardGenerator.js + boardValidator.js ── */
+function scr(id){ge('sLS').classList.remove('on');ge('sG').classList.remove('on');ge(id).classList.add('on')}
+function sov(id){ge(id).classList.add('on')}
+function hov(id){ge(id).classList.remove('on')}
+function gc(i){return ge('c'+i)}
 
 /* ── Start level ── */
-function startLevel(idx){
-  if(autoTid){clearInterval(autoTid);autoTid=null}
-  lvl=idx; sel=-1; arUsed=0; dryPresses=0; hA=-1; hB=-1; matchesSinceLastAdd=0;
-  board = getBoardWithValidation(idx);
+function go(idx){
+  if(G.autoT){clearInterval(G.autoT);G.autoT=null}
+  G.lvl=idx;G.sel=-1;G.arUsed=0;G.dryP=0;G.msAdd=0;G.hA=-1;G.hB=-1;
+  G.board=makeBoard(idx);
   ge('lLv').textContent='Level '+(idx+1);
-  hideOv('oWin'); hideOv('oOver');
-  renderAll(); updateBadges();
-  showScr('sG');
-  ge('sa').scrollTop=0;
+  hov('oWin');hov('oOver');hov('oConfirm');
+  render();badges();scr('sG');ge('sa').scrollTop=0
 }
-function restart(){startLevel(lvl)}
-function goMenu(){
-  if(autoTid){clearInterval(autoTid);autoTid=null}
-  hideOv('oWin'); hideOv('oOver'); showScr('sLS');
+function restart(){go(G.lvl)}
+function menu(){if(G.autoT){clearInterval(G.autoT);G.autoT=null}hov('oWin');hov('oOver');hov('oConfirm');scr('sLS')}
+
+/* ── Render ── */
+function render(){var g=ge('grid');g.innerHTML='';for(var i=0;i<G.board.length;i++)g.appendChild(mkc(i,false));hApply()}
+function mkc(i,anim){
+  var el=document.createElement('div');el.id='c'+i;
+  el.className='cell'+(G.board[i].m?' cm':'')+(anim?' nr':'');
+  el.textContent=G.board[i].v;
+  if(!G.board[i].m)el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i));
+  return el
 }
-</script>
-<script>
-/* ── Grid rendering ── */
-function renderAll(){
-  var g=ge('grid'); g.innerHTML='';
-  for(var i=0;i<board.length;i++) g.appendChild(mkCell(i,false));
-  applyHintClass();
-}
-function appendRows(from){
-  var g=ge('grid');
-  for(var i=from;i<board.length;i++){var el=mkCell(i,true);g.appendChild(el)}
-  applyHintClass();
-}
-function mkCell(i,anim){
-  var el=document.createElement('div');
-  el.id='c'+i;
-  el.className='cell'+(board[i].m?' cm':'')+(anim?' nr':'');
-  el.textContent=board[i].v;
-  if(!board[i].m) el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i));
-  return el;
-}
-function cel(i){return ge('c'+i)}
-function refreshCell(i){
-  var el=cel(i); if(!el) return;
-  el.className='cell'+(board[i].m?' cm':'');
-  el.textContent=board[i].v;
-  if(!board[i].m) el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i));
-}
-function updateBadges(){
-  var rem=0; for(var i=0;i<board.length;i++) if(!board[i].m) rem++;
-  ge('lRow').textContent='+Row:'+(MAXAR-arUsed);
-  ge('lMat').textContent=rem+' left';
-  ge('bAdd').disabled=arUsed>=MAXAR;
-  ge('bAdd').textContent='\uFF0B Add Number ('+(MAXAR-arUsed)+')';
-}
+function rcell(i){var el=gc(i);if(!el)return;el.className='cell'+(G.board[i].m?' cm':'');el.textContent=G.board[i].v;if(!G.board[i].m)el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i))}
+function badges(){var rem=0;for(var i=0;i<G.board.length;i++)if(!G.board[i].m)rem++;ge('lRow').textContent='+'+(MAXAR-G.arUsed);ge('lMat').textContent=rem+' left';ge('bAdd').disabled=G.arUsed>=MAXAR;ge('bAdd').textContent='\uFF0B Add Number ('+(MAXAR-G.arUsed)+')'}
 
 /* ── Tap / match ── */
 function tap(i){
-  if(board[i].m) return;
-  clearHintClass();
-
-  if(sel<0){
-    sel=i; var e=cel(i); if(e) e.classList.add('cs');
-    sndTap();
-    return;
-  }
-  if(sel===i){
-    var e=cel(sel); if(e) e.classList.remove('cs');
-    sel=-1; return;
-  }
-
-  var a=sel, b=i; sel=-1;
-  var ea=cel(a), eb=cel(b);
-  if(ea) ea.classList.remove('cs');
-
-  if(canMatch(a,b)){
-    dryPresses=0;
-    matchesSinceLastAdd++;
-    board[a].m=true; board[b].m=true;
-    hA=-1; hB=-1;
-    sndMatch();
-    if(ea){ea.classList.add('fok'); setTimeout(function(){refreshCell(a)},360)}
-    if(eb){eb.classList.add('fok'); setTimeout(function(){refreshCell(b)},360)}
-    updateBadges();
-    setTimeout(function(){
-      if(allDone()){showWin();return}
-      if(!anyMatch()&&arUsed>=MAXAR){showOv('oOver');return}
-      if(!anyMatch()){return} // no moves — player must tap Add Row themselves
-    },380);
-  } else {
+  if(G.board[i].m)return;hClear();
+  if(G.sel<0){G.sel=i;var e=gc(i);if(e)e.classList.add('cs');sTap();return}
+  if(G.sel===i){var e=gc(G.sel);if(e)e.classList.remove('cs');G.sel=-1;return}
+  var a=G.sel,b=i;G.sel=-1;var ea=gc(a),eb=gc(b);if(ea)ea.classList.remove('cs');
+  if(canMatch(G.board,a,b)){
+    G.dryP=0;G.msAdd++;G.board[a].m=true;G.board[b].m=true;G.hA=-1;G.hB=-1;sOk();
+    if(ea){ea.classList.add('fok');setTimeout(function(){rcell(a)},360)}
+    if(eb){eb.classList.add('fok');setTimeout(function(){rcell(b)},360)}
+    badges();
+    setTimeout(function(){if(isCleared(G.board)){showWin();return}if(!hasMatch(G.board)&&G.arUsed>=MAXAR){sov('oOver')}},380)
+  }else{
     if(ea){ea.classList.add('ferr');setTimeout(function(){ea.classList.remove('ferr')},380)}
     if(eb){eb.classList.add('ferr');setTimeout(function(){eb.classList.remove('ferr')},380)}
-    sndError();
-    // wrong attempt — no auto hint, player clicks Hint button themselves
+    sErr()
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   MATCH ENGINE — delegated to matchFinder.js (adapters defined above)
-   canMatch(a,b), findAllMatches(), hasAnyMatch(), allDone()
-   are all available as 2-arg wrappers using global `board`.
-   ══════════════════════════════════════════════════════════════ */
-
-function anyMatch(){ return hasAnyMatch(); }
-
-/* ── Hint: scans in reading order, highlights first valid pair ── */
+/* ── Hint: scan in reading order, highlight first valid pair ── */
 function doHint(){
-  clearHintClass();
-  // findAllMatches returns pairs in reading order — first pair is [0]
-  var pairs=findAllMatches();
-  if(!pairs.length){
-    // No matches — flash Add Number button
-    ge('bAdd').style.boxShadow='0 0 0 3px #e94560';
-    setTimeout(function(){ge('bAdd').style.boxShadow=''},1200);
-    return;
-  }
-  // Use first pair in reading order
-  hA=pairs[0][0]; hB=pairs[0][1];
-  applyHintClass();
-  setTimeout(function(){
-    if(hA===pairs[0][0]&&hB===pairs[0][1]){clearHintClass();hA=-1;hB=-1}
-  },2500);
+  hClear();
+  var pairs=allPairs(G.board);
+  if(!pairs.length){ge('bAdd').style.boxShadow='0 0 0 3px #e94560';setTimeout(function(){ge('bAdd').style.boxShadow=''},1200);return}
+  G.hA=pairs[0][0];G.hB=pairs[0][1];hApply();
+  var sa=G.hA,sb=G.hB;setTimeout(function(){if(G.hA===sa&&G.hB===sb){hClear();G.hA=-1;G.hB=-1}},2500)
 }
-/* ── applyHintClass / clearHintClass ── */
-function applyHintClass(){
-  if(hA>=0){var e=cel(hA);if(e&&!board[hA].m)e.classList.add('ha')}
-  if(hB>=0){var e=cel(hB);if(e&&!board[hB].m)e.classList.add('hb')}
-}
-function clearHintClass(){
-  if(hA>=0){var e=cel(hA);if(e){e.classList.remove('ha');e.classList.remove('hb')}}
-  if(hB>=0){var e=cel(hB);if(e){e.classList.remove('ha');e.classList.remove('hb')}}
-}
-</script>
-<script>
-/* ── Add Number with intercept ── */
-function doAddRow(){
-  if(arUsed>=MAXAR) return;
-  // Scan board for any valid matches
-  if(anyMatch()){
-    // Matches exist — show confirmation dialog, pause the action
-    showOv('oConfirm');
-  } else {
-    // Player is genuinely stuck — add immediately
-    doAddActual();
-  }
-}
+function hApply(){if(G.hA>=0){var e=gc(G.hA);if(e&&!G.board[G.hA].m)e.classList.add('ha')}if(G.hB>=0){var e=gc(G.hB);if(e&&!G.board[G.hB].m)e.classList.add('hb')}}
+function hClear(){if(G.hA>=0){var e=gc(G.hA);if(e){e.classList.remove('ha');e.classList.remove('hb')}}if(G.hB>=0){var e=gc(G.hB);if(e){e.classList.remove('ha');e.classList.remove('hb')}}}
 
+/* ── Add Row with intercept ── */
+function doAdd(){if(G.arUsed>=MAXAR)return;if(hasMatch(G.board)){sov('oConfirm');return}doAddActual()}
 function doAddActual(){
-  if(arUsed>=MAXAR) return;
-  clearHintClass(); hA=-1; hB=-1;
-  if(matchesSinceLastAdd===0) dryPresses++;
-  else dryPresses=0;
-  matchesSinceLastAdd=0;
-  var cfg=getLevelConfig(lvl);
-  var result=executeAddRow(board,cfg,dryPresses);
-  board=result.board;
-  arUsed++;
-  var newIdx=board.length-1;
-  var el=mkCell(newIdx,true);
-  ge('grid').appendChild(el);
-  sndAdd();
-  updateBadges();
+  if(G.arUsed>=MAXAR)return;hClear();G.hA=-1;G.hB=-1;
+  if(G.msAdd===0)G.dryP++;else G.dryP=0;G.msAdd=0;
+  var cfg=LCFG[Math.min(G.lvl,LCFG.length-1)];
+  var res=smartAdd(G.board,cfg,G.dryP);
+  G.board=res.bd;G.arUsed++;
+  var ni=G.board.length-1;ge('grid').appendChild(mkc(ni,true));
+  sAdd();badges();
   setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
-  if(arUsed>=MAXAR&&!hasAnyMatch()) setTimeout(function(){showOv('oOver')},400);
+  if(G.arUsed>=MAXAR&&!hasMatch(G.board))setTimeout(function(){sov('oOver')},400)
 }
 
-/* ── Win overlay ── */
+/* ── Win ── */
 function showWin(){
-  sndWin();
-  var next=lvl+1, isLast=next>=LEVEL_CONFIG.length;
-  ge('wSub').textContent=isLast?'You cleared all '+LEVEL_CONFIG.length+' levels! \uD83C\uDFC6':'Advancing to Level '+(next+1)+'...';
-  ge('bNext').style.display=isLast?'none':'block';
-  ge('wCd').textContent=isLast?'':3;
-  showOv('oWin');
-  if(!isLast){
-    var cd=3;
-    autoTid=setInterval(function(){
-      cd--; ge('wCd').textContent=cd>0?cd:'';
-      if(cd<=0){clearInterval(autoTid);autoTid=null;hideOv('oWin');startLevel(next)}
-    },1000);
-  }
+  sWin();var nx=G.lvl+1,last=nx>=LCFG.length;
+  ge('wSub').textContent=last?'You cleared all levels! \uD83C\uDFC6':'Next: Level '+(nx+1);
+  ge('bNext').style.display=last?'none':'block';ge('wCd').textContent=last?'':3;sov('oWin');
+  if(!last){var cd=3;G.autoT=setInterval(function(){cd--;ge('wCd').textContent=cd>0?cd:'';if(cd<=0){clearInterval(G.autoT);G.autoT=null;hov('oWin');go(nx)}},1000)}
 }
 
 /* ── Level select ── */
-function buildLS(){
-  var g=ge('lgrid'); g.innerHTML='';
-  for(var i=0;i<LEVEL_CONFIG.length;i++){
-    (function(idx){
-      var btn=document.createElement('div');
-      btn.className='lb'+(isReliefLevel(idx)?' relief':'');
-      btn.innerHTML=(isReliefLevel(idx)?'<span class="le">EASY</span>':'')+'<span class="ln">'+(idx+1)+'</span>';
-      btn.onclick=function(){startLevel(idx)};
-      g.appendChild(btn);
-    })(i);
-  }
+function buildLevels(){
+  var g=ge('lgrid');g.innerHTML='';
+  for(var i=0;i<LCFG.length;i++){(function(idx){var b=document.createElement('div');b.className='lb'+(RELIEF_IDX[idx]?' relief':'');b.innerHTML=(RELIEF_IDX[idx]?'<span class="le">EASY</span>':'')+'<span class="ln">'+(idx+1)+'</span>';b.onclick=function(){go(idx)};g.appendChild(b)})(i)}
 }
 
 /* ── Wire buttons ── */
-ge('bBack').onclick=goMenu;
-ge('bAdd').onclick=doAddRow;
-ge('hBtn').onclick=doHint;
-ge('hFic').onclick=doHint;
+ge('bBack').onclick=menu;ge('bAdd').onclick=doAdd;ge('hBtn').onclick=doHint;ge('hFic').onclick=doHint;
 ge('bRst').onclick=restart;
-ge('bNext').onclick=function(){hideOv('oWin');if(autoTid){clearInterval(autoTid);autoTid=null}startLevel(lvl+1)};
-ge('bWM').onclick=goMenu;
-ge('bRetry').onclick=restart;
-ge('bOM').onclick=goMenu;
-// Confirm dialog: Yes = proceed with adding, No = cancel
-ge('bConfirmYes').onclick=function(){hideOv('oConfirm');doAddActual();};
-ge('bConfirmNo').onclick=function(){hideOv('oConfirm');/* player goes back to find the match */};
+ge('bNext').onclick=function(){hov('oWin');if(G.autoT){clearInterval(G.autoT);G.autoT=null}go(G.lvl+1)};
+ge('bWM').onclick=menu;ge('bRetry').onclick=restart;ge('bOM').onclick=menu;
+ge('bCY').onclick=function(){hov('oConfirm');doAddActual()};
+ge('bCN').onclick=function(){hov('oConfirm')};
 
 /* ── Boot ── */
-buildLS();
+buildLevels();
 </script>
 </body>
 </html>
