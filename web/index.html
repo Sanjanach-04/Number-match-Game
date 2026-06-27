@@ -225,200 +225,73 @@ function _bld(cfg,att){
   return vals.map(function(v){return{v:v,m:false}})
 }
 
-/* ══════════════════════════════════════════════════════════════
-   ADD NUMBER ENGINE  — 3-step: Plan → Propose → Validate
+/* ADD NUMBER ENGINE - Plan, Propose, Validate
+   Step1 Plan: count freq of each active value.
+     A value v is orphaned when count(v) != count(comp(v)).
+     comp(v) = v===5 ? 5 : 10-v
+   Step2 Propose: minimal rescue row.
+     deficit = |count(v) - count(comp(v))|
+     Add that many copies of the short side only.
+     5<->5: if count(5) odd, add one 5.
+   Step3 Validate: simulate board+row, greedy-clear
+     by shortest Manhattan distance. Board must empty.
+     If fail -> broaden: one complement per unique value.
+     Last resort: push adjacent pair for instant match.
+   Examples:
+     [1]->[9] [4]->[6] [5]->[5] [1,8]->[9,2] [3,7]->[] */
 
-   STEP 1 — PLAN
-   Scan active digits. Find existing valid pairs via canMatch().
-   Mark stranded digits: active cells with NO canMatch partner.
-   Also flag value-orphans: values whose complement doesn't
-   exist anywhere on the board (value-level check).
+function comp(v){return v===5?5:(10-v)}
 
-   STEP 2 — PROPOSE
-   Build the MINIMAL rescue row:
-   • For each stranded/orphan value v:
-       comp(v) = v===5 ? 5 : 10-v
-       deficit = max(0, count(v) - count(comp(v)))
-       Add exactly 'deficit' copies of comp(v).
-   • Self-pair (5↔5): add 1 if total count of 5s is odd.
-   • Never add a value whose complement already satisfies demand.
-   • Result is the minimum number of digits needed.
+function getRemainingNumbers(bd){
+  var o=[];for(var i=0;i<bd.length;i++)if(!bd[i].m)o.push(bd[i].v);return o}
 
-   STEP 3 — VALIDATE
-   Simulate board + rescue row.
-   Greedy-clear by shortest Manhattan distance (matches reference).
-   Board must fully empty. If validation fails → try deficit row.
-   If still stuck → force one back-to-back adjacent pair
-   (wrap rule guarantees instant match).
+function buildRescueRow(bd){
+  var rem=getRemainingNumbers(bd),freq={},rescue=[],done={};
+  for(var i=0;i<rem.length;i++){var vv=rem[i];freq[vv]=(freq[vv]||0)+1}
+  for(var v=1;v<=9;v++){
+    if(!freq[v]||done[v])continue;
+    var c=comp(v);done[v]=true;done[c]=true;
+    var cv=freq[v]||0,cc=freq[c]||0;
+    if(c===v){if(cv%2!==0)rescue.push(5)}
+    else if(cv>cc){for(var d=0;d<cv-cc;d++)rescue.push(c)}
+    else if(cc>cv){for(var d=0;d<cc-cv;d++)rescue.push(v)}}
+  return rescue}
 
-   EXAMPLES
-     [1]       → plan: 1 orphan  → propose [9]     → valid ✓
-     [4]       → plan: 4 orphan  → propose [6]     → valid ✓
-     [5]       → plan: odd 5s    → propose [5]     → valid ✓
-     [1,8]     → plan: orphans   → propose [9,2]   → valid ✓
-     [3,7]     → plan: no orphan → propose []      → already ok ✓
+function validateRescue(bd,row){
+  if(row.length===0)return hasMatch(bd);
+  var sim=[];
+  for(var i=0;i<bd.length;i++)sim.push({v:bd[i].v,m:bd[i].m});
+  for(var i=0;i<row.length;i++)sim.push({v:row[i],m:false});
+  if(!hasMatch(sim))return false;
+  for(var moves=0;moves<60;moves++){
+    var pairs=allPairs(sim);if(pairs.length===0)break;
+    pairs.sort(function(a,b){
+      var da=Math.abs(Math.floor(a[0]/NC)-Math.floor(a[1]/NC))+Math.abs((a[0]%NC)-(a[1]%NC));
+      var db=Math.abs(Math.floor(b[0]/NC)-Math.floor(b[1]/NC))+Math.abs((b[0]%NC)-(b[1]%NC));
+      return da-db});
+    sim[pairs[0][0]].m=true;sim[pairs[0][1]].m=true}
+  for(var i=0;i<sim.length;i++)if(!sim[i].m)return false;
+  return true}
 
-   Zero Math.random(). No orphans created. Deterministic. Minimal.
-══════════════════════════════════════════════════════════════ */
+function smartAdd(bd){
+  if(getRemainingNumbers(bd).length===0)return{bd:bd.slice()};
+  var rescueRow=buildRescueRow(bd);
+  if(!validateRescue(bd,rescueRow)){
+    var seen={},broader=[];
+    var rem2=getRemainingNumbers(bd);
+    for(var i=0;i<rem2.length;i++){
+      if(seen[rem2[i]])continue;
+      seen[rem2[i]]=true;seen[comp(rem2[i])]=true;
+      broader.push(comp(rem2[i]))}
+    rescueRow=broader}
+  var nb=bd.slice();
+  for(var i=0;i<rescueRow.length;i++)nb.push({v:rescueRow[i],m:false});
+  if(!hasMatch(nb)){
+    var fv=null;
+    for(var i=0;i<nb.length;i++){if(!nb[i].m){fv=nb[i].v;break}}
+    if(fv!==null){nb.push({v:comp(fv),m:false});nb.push({v:fv,m:false})}}
+  return{bd:nb}}
 
-function comp(v) { return v === 5 ? 5 : (10 - v); }
-
-function getRemainingNumbers(bd) {
-  var out = [];
-  for (var i = 0; i < bd.length; i++) if (!bd[i].m) out.push(bd[i].v);
-  return out;
-}
-
-/* STEP 1 helper: does value v have a valid canMatch partner on board? */
-function valueHasReachablePartner(bd, idx) {
-  for (var j = 0; j < bd.length; j++) {
-    if (j !== idx && canMatch(bd, idx, j)) return true;
-  }
-  return false;
-}
-
-/* STEP 2: build minimal rescue row — only the deficit complements */
-function buildRescueRow(bd) {
-  var remaining = getRemainingNumbers(bd);
-  if (remaining.length === 0) return [];
-
-  /* Count active values */
-  var freq = {};
-  for (var i = 0; i < remaining.length; i++) {
-    var v = remaining[i];
-    freq[v] = (freq[v] || 0) + 1;
-  }
-
-  /* Find which values are stranded: check both value-level AND path-level.
-     A value v is "needy" if:
-       (a) its complement value doesn't exist on board at all, OR
-       (b) it exists but count is imbalanced (more v than comp) */
-  var rescue = [];
-  var done   = {};
-
-  for (var v = 1; v <= 9; v++) {
-    if (!freq[v] || done[v]) continue;
-    var c = comp(v);
-    done[v] = true;
-    done[c] = true;
-
-    var cv = freq[v] || 0;
-    var cc = freq[c] || 0;
-
-    if (c === v) {
-      /* 5↔5: need even total */
-      if (cv % 2 !== 0) rescue.push(5);
-    } else {
-      if (cv > cc) {
-        /* more v than comp → add exactly (cv-cc) copies of comp */
-        for (var d = 0; d < cv - cc; d++) rescue.push(c);
-      } else if (cc > cv) {
-        /* more comp than v → add exactly (cc-cv) copies of v */
-        for (var d = 0; d < cc - cv; d++) rescue.push(v);
-      }
-      /* balanced → nothing needed */
-    }
-  }
-
-  return rescue;
-}
-
-/* STEP 3: validate — simulate + greedy-clear, board must fully empty */
-function validateAndSimulate(bd, row) {
-  if (row.length === 0) return hasMatch(bd); /* no row needed if board ok */
-
-  var sim = bd.map(function(c) { return { v: c.v, m: c.m }; });
-  for (var i = 0; i < row.length; i++) sim.push({ v: row[i], m: false });
-
-  var pairsBefore = allPairs(bd).length;
-  var pairsAfter  = allPairs(sim);
-  if (pairsAfter.length === 0 || pairsAfter.length <= pairsBefore) return false;
-
-  /* greedy-clear: always pick shortest Manhattan-distance pair first */
-  var moves = 0;
-  while (moves < 60) {
-    var pairs = allPairs(sim);
-    if (pairs.length === 0) break;
-    pairs.sort(function(p1, p2) {
-      var d1 = Math.abs(Math.floor(p1[0]/NC) - Math.floor(p1[1]/NC))
-             + Math.abs((p1[0]%NC) - (p1[1]%NC));
-      var d2 = Math.abs(Math.floor(p2[0]/NC) - Math.floor(p2[1]/NC))
-             + Math.abs((p2[0]%NC) - (p2[1]%NC));
-      return d1 - d2;
-    });
-    sim[pairs[0][0]].m = true;
-    sim[pairs[0][1]].m = true;
-    moves++;
-  }
-  for (var i = 0; i < sim.length; i++) if (!sim[i].m) return false;
-  return true;
-}
-
-function smartAdd(bd) {
-  var remaining = getRemainingNumbers(bd);
-
-  /* Empty board — shouldn't happen in normal play */
-  if (remaining.length === 0) return { bd: bd.slice() };
-
-  /* ── STEP 1: PLAN ── check if board already has valid moves */
-  if (hasMatch(bd)) {
-    /* Board already solvable — but player chose to add anyway.
-       Still provide rescue so they can finish: only add what's missing. */
-  }
-
-  /* ── STEP 2: PROPOSE — minimal deficit rescue row ── */
-  var rescueRow = buildRescueRow(bd);
-
-  /* ── STEP 3: VALIDATE — simulate and verify ── */
-  var valid = validateAndSimulate(bd, rescueRow);
-
-  if (!valid) {
-    /* Validation failed — try adding complements for ALL remaining values
-       (broader rescue), then validate again */
-    var broadRescue = [];
-    var done2 = {};
-    for (var i = 0; i < remaining.length; i++) {
-      var v = remaining[i], c = comp(v);
-      var key = Math.min(v,c)*10 + Math.max(v,c);
-      if (done2[key]) continue;
-      done2[key] = true;
-      broadRescue.push(c);
-      if (c !== v) broadRescue.push(v);
-    }
-    /* deduplicate: keep only pairs */
-    var freq2 = {};
-    for (var i = 0; i < broadRescue.length; i++) freq2[broadRescue[i]] = (freq2[broadRescue[i]]||0)+1;
-    var deduped = [];
-    var dDone = {};
-    for (var v = 1; v <= 9; v++) {
-      if (!freq2[v] || dDone[v]) continue;
-      var c = comp(v); dDone[v]=true; dDone[c]=true;
-      deduped.push(c);
-      if (c !== v) deduped.push(v);
-    }
-    rescueRow = deduped;
-    valid = validateAndSimulate(bd, rescueRow);
-  }
-
-  /* Append rescue row to board */
-  var nb = bd.slice();
-  for (var i = 0; i < rescueRow.length; i++) nb.push({ v: rescueRow[i], m: false });
-
-  /* Final safety: if still no immediate match, force one adjacent pair */
-  if (!hasMatch(nb)) {
-    var fv = null;
-    for (var i = 0; i < nb.length; i++) { if (!nb[i].m) { fv = nb[i].v; break; } }
-    if (fv !== null) {
-      var fc = comp(fv);
-      nb.push({ v: fc, m: false });
-      nb.push({ v: fv, m: false });
-    }
-  }
-
-  return { bd: nb };
-}
-
-/* ── Sound ── */
 var _ac=null;
 function gAC(){if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return _ac}
 function tone(f,d,t,vol){var ac=gAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(vol||.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
