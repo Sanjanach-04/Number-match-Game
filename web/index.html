@@ -142,7 +142,7 @@ var LCFG=[
   {md:0.72,hm:0.20,dr:0.20,seed:3001159}  /* L11 RELIEF  */
 ];
 var RELIEF_IDX={5:1,10:1};
-var NC=9, MAXAR=6;
+var NC=9, MAXAR=1;
 
 /* ── Match rules — all take explicit (bd,a,b) ── */
 function vM(va,vb){return va===vb||va+vb===10}
@@ -226,102 +226,27 @@ function _bld(cfg,att){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ADD ROW ENGINE  — v7 (exact complement rescue)
+   ADD ROW ENGINE  — v8 (one press, full complement per cell)
 
-   ONE press → board is fully solvable. No more presses needed.
+   ONE press → for every remaining active cell, append its exact
+   complement. Board becomes 100% solvable immediately.
 
-   HOW IT WORKS
-   ─────────────────────────────────────────────────────────────
-   1. Scan all remaining active numbers → build frequency map.
-   2. For each value v, its match partner is:
-        comp(v) = (v === 5) ? 5 : (10 - v)
-   3. Calculate the DEFICIT for each pair:
-        • cross-pair (e.g. 3↔7): if more 3s than 7s, add the
-          difference as extra 7s (and vice-versa).
-        • self-pair  (5↔5):     if odd count of 5s, add one 5.
-   4. Append ALL deficit complements at once → one press solves
-      the entire board. No randoms. No extras. No orphans.
-
-   EXAMPLE
-   Remaining: 8 1 3 5 6  (one each)
-   freq:  {8:1, 1:1, 3:1, 5:1, 6:1}
-   Pairs: 8↔2(deficit 1→add 2), 1↔9(deficit 1→add 9),
-          3↔7(deficit 1→add 7), 5↔5(odd→add 5), 6↔4(deficit 1→add 4)
-   Added: [2, 9, 7, 5, 4]
+   Rules:  1↔9  2↔8  3↔7  4↔6  5↔5
+   Example: remaining [8, 3, 1, 8, 5, 6, 3, 8, 5]
+   Adds:              [2, 7, 9, 2, 5, 4, 7, 2, 5]
+   Every cell now has a direct complement partner → fully solvable.
+   No random numbers. No limits. One press only.
 ══════════════════════════════════════════════════════════════ */
 
 function smartAdd(bd) {
-  /* Step 1: count every active value */
-  var freq = {};
-  for (var i = 0; i < bd.length; i++) {
-    if (!bd[i].m) {
-      var v = bd[i].v;
-      freq[v] = (freq[v] || 0) + 1;
-    }
-  }
-
-  /* Step 2: compute exact deficit for each pair */
-  var rescue = [];
-  var done   = {};
-
-  for (var v = 1; v <= 9; v++) {
-    if (!freq[v] || done[v]) continue;
-    var c = (v === 5) ? 5 : (10 - v);
-    done[v] = true;
-    done[c] = true;
-
-    if (c === v) {
-      /* 5↔5 self-pair: need even total */
-      if ((freq[5] || 0) % 2 !== 0) rescue.push(5);
-    } else {
-      var haveV = freq[v] || 0;
-      var haveC = freq[c] || 0;
-      if (haveV > haveC) {
-        /* more v than c → add (haveV - haveC) copies of c */
-        for (var d = 0; d < haveV - haveC; d++) rescue.push(c);
-      } else if (haveC > haveV) {
-        /* more c than v → add (haveC - haveV) copies of v */
-        for (var d = 0; d < haveC - haveV; d++) rescue.push(v);
-      }
-      /* equal → already balanced, nothing needed */
-    }
-  }
-
-  /* Step 3: append ALL rescue numbers at once */
   var nb = bd.slice();
-  for (var i = 0; i < rescue.length; i++) {
-    nb.push({ v: rescue[i], m: false });
+  /* For every remaining active cell, append its complement */
+  for (var i = 0; i < bd.length; i++) {
+    if (bd[i].m) continue;
+    var v = bd[i].v;
+    var c = (v === 5) ? 5 : (10 - v);
+    nb.push({ v: c, m: false });
   }
-
-  /* Step 4: safety — if board still has no immediate match
-     (values are balanced but all paths blocked by uncleared cells),
-     append a directly-adjacent matchable pair at the very end.
-     Two cells back-to-back satisfy the wrap rule instantly. */
-  if (!hasMatch(nb)) {
-    /* find any active value that has no canMatch partner yet */
-    var sv = null;
-    for (var i = 0; i < nb.length; i++) {
-      if (nb[i].m) continue;
-      var found = false;
-      for (var j = 0; j < nb.length; j++) {
-        if (i !== j && canMatch(nb, i, j)) { found = true; break; }
-      }
-      if (!found) { sv = nb[i].v; break; }
-    }
-    if (sv === null && nb.length > 0) {
-      /* every cell has a value-partner but wrap still blocked — pick last active */
-      for (var i = nb.length - 1; i >= 0; i--) {
-        if (!nb[i].m) { sv = nb[i].v; break; }
-      }
-    }
-    if (sv !== null) {
-      var sc = (sv === 5) ? 5 : (10 - sv);
-      /* push [comp, value] back-to-back → mW sees 0 cells between → instant match */
-      nb.push({ v: sc, m: false });
-      nb.push({ v: sv, m: false });
-    }
-  }
-
   return { bd: nb };
 }
 
@@ -365,7 +290,7 @@ function mkc(i,anim){
   return el
 }
 function rcell(i){var el=gc(i);if(!el)return;el.className='cell'+(G.board[i].m?' cm':'');el.textContent=G.board[i].v;if(!G.board[i].m)el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i))}
-function badges(){var rem=0;for(var i=0;i<G.board.length;i++)if(!G.board[i].m)rem++;ge('lRow').textContent='+'+(MAXAR-G.arUsed);ge('lMat').textContent=rem+' left';ge('bAdd').disabled=G.arUsed>=MAXAR;ge('bAdd').textContent='\uFF0B Add Number ('+(MAXAR-G.arUsed)+')'}
+function badges(){var rem=0;for(var i=0;i<G.board.length;i++)if(!G.board[i].m)rem++;ge('lRow').textContent=G.arUsed>=MAXAR?'used':'1 use';ge('lMat').textContent=rem+' left';ge('bAdd').disabled=G.arUsed>=MAXAR;ge('bAdd').textContent=G.arUsed>=MAXAR?'\uFF0B Add Number (used)':'\uFF0B Add Number'}
 
 /* ── Tap / match ── */
 function tap(i){
