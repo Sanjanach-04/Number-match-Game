@@ -173,24 +173,67 @@ function _bld(cfg,att){
   return vals.map(function(v){return{v:v,m:false}})
 }
 
-/* ── Smart Add Row ── */
+/* ── Smart Add Row: injects 2–4 numbers that create playable matches ── */
 function smartAdd(bd,cfg,dryP){
+  /* Step 1: Analyse board */
   var freq={},actIdx=[];
   for(var i=0;i<bd.length;i++)if(!bd[i].m){var v=bd[i].v;freq[v]=(freq[v]||0)+1;actIdx.push(i)}
+
+  /* Rows with exactly 1 active cell (stragglers) */
   var stragg=[],nr=Math.ceil(bd.length/NC);
   for(var r=0;r<nr;r++){var ac=[];for(var c=0;c<NC;c++){var idx=r*NC+c;if(idx<bd.length&&!bd[idx].m)ac.push(bd[idx].v)}if(ac.length===1)stragg.push(ac[0])}
+
+  /* Values that have no value-partner anywhere on board */
   var iso=[];
   for(var i=0;i<actIdx.length;i++){var vv=bd[actIdx[i]].v,found=false;for(var j=0;j<actIdx.length;j++)if(i!==j&&vM(vv,bd[actIdx[j]].v)){found=true;break}if(!found&&iso.indexOf(vv)<0)iso.push(vv)}
-  var cands=[];
-  stragg.forEach(function(v){if(cands.indexOf(v)<0)cands.push(v)});
-  iso.forEach(function(v){if(cands.indexOf(v)<0)cands.push(v)});
+
+  /* Step 2: Decide how many numbers to add (2-4 based on board state) */
+  var target=2;                         // minimum 2
+  if(stragg.length>0)target=Math.max(target,stragg.length*2); // pair up stragglers
+  if(iso.length>0)target=Math.max(target,iso.length+1);       // fix isolated values
+  if(dryP>=2)target=4;                  // rescue: add 4 to guarantee progress
+  target=Math.min(target,9);           // cap at 9
+
+  /* Step 3: Build a list of values to inject */
+  var toAdd=[];
+
+  /* Fix stragglers first: add their complement so they become matchable */
+  for(var s=0;s<stragg.length&&toAdd.length<target;s++){
+    toAdd.push(stragg[s]); // same value = easy match
+  }
+
+  /* Fix isolated values: add their complement */
+  for(var s=0;s<iso.length&&toAdd.length<target;s++){
+    toAdd.push(iso[s]);
+  }
+
+  /* If rescue mode, ensure we have at least one obvious same-value adjacent pair */
+  if(dryP>=2&&toAdd.length<2){
+    var bestV=actIdx.length?bd[actIdx[0]].v:1;
+    toAdd.push(bestV);toAdd.push(bestV);
+  }
+
+  /* Fill remaining slots with helpful values from the board */
   var fp2=[];for(var v in freq)fp2.push([+v,freq[v]]);
   fp2.sort(function(a,b){return dryP>=2?b[1]-a[1]:a[1]-b[1]});
-  fp2.forEach(function(p){if(cands.indexOf(p[0])<0)cands.push(p[0])});
-  for(var v=1;v<=9;v++)if(cands.indexOf(v)<0)cands.push(v);
-  for(var ci=0;ci<cands.length;ci++){var nb=bd.concat([{v:cands[ci],m:false}]);if(hasMatch(nb))return{bd:nb,v:cands[ci]}}
-  var lv=bd.length?bd[bd.length-1].v:1;
-  return{bd:bd.concat([{v:lv,m:false}]),v:lv}
+  for(var pi=0;pi<fp2.length&&toAdd.length<target;pi++){
+    toAdd.push(fp2[pi][0]);
+  }
+  /* Fallback: any value 1-9 */
+  for(var v=1;v<=9&&toAdd.length<target;v++)toAdd.push(v);
+
+  /* Step 4: Try injecting the chosen values and verify at least one match exists */
+  var newBd=bd.slice();
+  for(var i=0;i<toAdd.length;i++)newBd.push({v:toAdd[i],m:false});
+
+  /* If still no match after injection, add explicit complement pairs */
+  if(!hasMatch(newBd)){
+    var fix=actIdx.length?bd[actIdx[0]].v:5;
+    newBd.push({v:fix,m:false});
+    newBd.push({v:fix,m:false}); // two of the same guarantees a match
+  }
+
+  return{bd:newBd,vals:toAdd}
 }
 
 /* ── Sound ── */
@@ -272,8 +315,14 @@ function doAddActual(){
   if(G.msAdd===0)G.dryP++;else G.dryP=0;G.msAdd=0;
   var cfg=LCFG[Math.min(G.lvl,LCFG.length-1)];
   var res=smartAdd(G.board,cfg,G.dryP);
-  G.board=res.bd;G.arUsed++;
-  var ni=G.board.length-1;ge('grid').appendChild(mkc(ni,true));
+  var prevLen=G.board.length;
+  G.board=res.bd;  // board now has 2-4+ new cells
+  G.arUsed++;
+  /* Append ALL new cells to the DOM grid */
+  var g=ge('grid');
+  for(var i=prevLen;i<G.board.length;i++){
+    g.appendChild(mkc(i,true));
+  }
   sAdd();badges();
   setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
   if(G.arUsed>=MAXAR&&!hasMatch(G.board))setTimeout(function(){sov('oOver')},400)
