@@ -226,103 +226,117 @@ function _bld(cfg,att){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ADD NUMBER ENGINE — final
-
-   ONE click → board is completely solvable. No second press needed.
+   ADD NUMBER ENGINE — intelligent minimal rescue
 
    ALGORITHM
-   ──────────────────────────────────────────────────────────────
-   Step 1  Count every active value on the board (freq map).
+   ─────────────────────────────────────────────────────────────
+   Step 1  Scan board → freq map of every active value.
 
-   Step 2  For each value, compute its complement:
+   Step 2  For each value v, find stranded cells:
+           a cell is stranded if it has NO canMatch partner
+           anywhere on the current board.
+           Track how many of each value are stranded.
+
+   Step 3  For each stranded value, compute deficit:
              comp(v) = v===5 ? 5 : 10-v
-           Calculate the DEFICIT — how many complement copies are
-           missing so every number has a match partner:
-             • cross-pair (3↔7): need count(3)==count(7).
-               If count(3)=4, count(7)=1 → add 3 sevens.
-             • self-pair  (5↔5): total must be even.
-               If count(5)=3 → add 1 five.
+             deficit = max(0, strandedCount(v) - activeCount(comp))
+           This is the MINIMUM number of complements to add.
 
-   Step 3  Build the rescue row: exactly the deficit values,
-           arranged as ADJACENT PAIRS [comp, value] so each pair
-           is immediately matchable via the wrap rule (zero cells
-           between them in reading order).
+   Step 4  Arrange rescue as adjacent pairs so they are
+           immediately playable via the wrap rule.
+           If rescue is empty but board has no match at all,
+           force one adjacent pair for the first stranded cell.
 
-   Step 4  Append rescue row to board. Done.
-
-   RESULT  Every remaining number has at least one reachable
-           complement. Player can clear the entire board.
-   No random numbers. No orphans. No duplicates. Minimal.
+   RESULT  Smallest possible rescue. Every stranded number gets
+           exactly one reachable complement. No extras. No randoms.
 ══════════════════════════════════════════════════════════════ */
 
 function smartAdd(bd) {
-  /* Step 1 — frequency of every active value */
+
+  /* ── Step 1: count active values ── */
   var freq = {};
   for (var i = 0; i < bd.length; i++) {
-    if (!bd[i].m) {
-      var v = bd[i].v;
-      freq[v] = (freq[v] || 0) + 1;
+    if (!bd[i].m) { var vv = bd[i].v; freq[vv] = (freq[vv] || 0) + 1; }
+  }
+
+  /* ── Step 2: find which cells are stranded (no canMatch partner) ── */
+  var strandedFreq = {};
+  for (var i = 0; i < bd.length; i++) {
+    if (bd[i].m) continue;
+    var hasPartner = false;
+    for (var j = 0; j < bd.length; j++) {
+      if (i !== j && canMatch(bd, i, j)) { hasPartner = true; break; }
+    }
+    if (!hasPartner) {
+      var sv = bd[i].v;
+      strandedFreq[sv] = (strandedFreq[sv] || 0) + 1;
     }
   }
 
-  /* Step 2 — compute deficit for each pair */
-  var rescue = []; /* list of {v} objects to append */
+  /* ── Step 3: compute deficit complements needed ── */
+  var rescue = [];   /* values to append, in order */
   var done   = {};
 
   for (var v = 1; v <= 9; v++) {
-    if (!freq[v] || done[v]) continue;
+    if (!strandedFreq[v] || done[v]) continue;
     var c = (v === 5) ? 5 : (10 - v);
     done[v] = true;
     done[c] = true;
 
+    var strandedV = strandedFreq[v] || 0;
+    var strandedC = strandedFreq[c] || 0;
+
     if (c === v) {
-      /* 5↔5 self-pair: total fives must be even */
+      /* 5↔5: stranded 5s need an even count total */
       var total5 = freq[5] || 0;
-      if (total5 % 2 !== 0) {
-        /* add one 5 paired with another 5 — push as adjacent pair */
-        rescue.push({ v: 5 });
-        rescue.push({ v: 5 });
-      }
+      if (total5 % 2 !== 0) rescue.push(5);
     } else {
-      var hv = freq[v] || 0; /* count of v  */
-      var hc = freq[c] || 0; /* count of comp */
-      if (hv > hc) {
-        /* need (hv-hc) more copies of c */
-        var deficit = hv - hc;
-        for (var d = 0; d < deficit; d++) {
-          /* push as adjacent pair [c, v] — both immediately matchable */
-          rescue.push({ v: c });
-          rescue.push({ v: v });
-        }
-      } else if (hc > hv) {
-        /* need (hc-hv) more copies of v */
-        var deficit = hc - hv;
-        for (var d = 0; d < deficit; d++) {
-          rescue.push({ v: v });
-          rescue.push({ v: c });
-        }
-      }
-      /* hv === hc: already balanced — nothing needed */
+      /* How many complement copies already exist on board? */
+      var existC = freq[c] || 0;
+      /* deficit = how many more 'c' we need so every stranded 'v' has a partner */
+      var deficit = Math.max(0, strandedV - existC);
+      for (var d = 0; d < deficit; d++) rescue.push(c);
+
+      /* Also check stranded complements needing v */
+      var existV = freq[v] || 0;
+      var deficitC = Math.max(0, strandedC - existV);
+      for (var d = 0; d < deficitC; d++) rescue.push(v);
     }
   }
 
-  /* Step 3 — build new board */
+  /* ── Step 4: build new board, arranged for immediate playability ── */
+  /* Sort rescue so identical values are grouped → adjacent wrap matches */
+  rescue.sort(function(a,b){ return a - b; });
+
   var nb = bd.slice();
   for (var i = 0; i < rescue.length; i++) {
-    nb.push({ v: rescue[i].v, m: false });
+    nb.push({ v: rescue[i], m: false });
   }
 
-  /* Step 4 — if rescue was empty (board already balanced by value)
-     but still no immediate match (all paths blocked), append the
-     last active value as an adjacent self-pair to unblock. */
-  if (rescue.length === 0 && !hasMatch(nb)) {
-    var lv = 5;
-    for (var i = nb.length - 1; i >= 0; i--) {
-      if (!nb[i].m) { lv = nb[i].v; break; }
+  /* ── Validation: if still no match, force one adjacent pair ── */
+  if (!hasMatch(nb)) {
+    /* Find first active cell with no partner */
+    var fv = null;
+    for (var i = 0; i < nb.length; i++) {
+      if (nb[i].m) continue;
+      var ok = false;
+      for (var j = 0; j < nb.length; j++) {
+        if (i !== j && canMatch(nb, i, j)) { ok = true; break; }
+      }
+      if (!ok) { fv = nb[i].v; break; }
     }
-    var lc = (lv === 5) ? 5 : (10 - lv);
-    nb.push({ v: lc, m: false });
-    nb.push({ v: lv, m: false });
+    if (fv === null) {
+      /* every cell has a value partner but paths all blocked — pick any active */
+      for (var i = nb.length - 1; i >= 0; i--) {
+        if (!nb[i].m) { fv = nb[i].v; break; }
+      }
+    }
+    if (fv !== null) {
+      var fc = (fv === 5) ? 5 : (10 - fv);
+      /* push back-to-back → wrap rule: 0 cells between → instant match */
+      nb.push({ v: fc, m: false });
+      nb.push({ v: fv, m: false });
+    }
   }
 
   return { bd: nb };
