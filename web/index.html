@@ -226,124 +226,35 @@ function _bld(cfg,att){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   INTELLIGENT ADD ROW ENGINE  — v4 (definitive)
+   ADD ROW ENGINE  — v5 (mirror copy)
 
-   GOAL  One press → every remaining number has a valid complement
-         → player can clear the entire board without pressing again.
+   GOAL  One press → append an exact copy of every remaining active
+         number on the board.
 
-   RULES (from game spec)
-     • Valid pair: same value  OR  sum == 10  (1↔9 2↔8 3↔7 4↔6 5↔5)
-     • complement(v) = (v === 5) ? 5 : (10 - v)
-     • New cells appended at the END of the board array.
-       Two cells placed back-to-back at positions [n] and [n+1] are
-       immediately matchable via the wrap/zipper rule because there are
-       zero cells between them in reading order.
+   WHY THIS WORKS
+   Every remaining number now has an identical twin appended at the
+   end.  Same-value pairs (e.g. 3↔3) are always valid by the game
+   rules.  The twin sits at the very end of the board array, so as
+   the player clears cells in between, the wrap/zipper path opens up
+   and each original number can match its twin.
 
-   ALGORITHM
-   Phase 1 — Frequency balance (value-level analysis)
-     Count every active value.  For each unbalanced pair:
-       cross (e.g. 3↔7):  add |count(3) − count(7)| copies of the
-                           less-frequent partner.
-       self  (5↔5):        add 1 if total count of 5s is odd.
-     Result: every value v now has at least one complement c on the
-     board so the board is VALUE-solvable.
-
-   Phase 2 — Adjacency guarantee
-     After Phase 1, check hasMatch().
-     If still false (all pairs blocked by uncleared cells in between),
-     append one extra ADJACENT pair at the very end:
-       pick the first stranded value (no canMatch partner anywhere),
-       push [complement, value] back-to-back → instant mW match.
-
-   Phase 3 — No-orphan check
-     If rescue list is empty AND board had no match to begin with
-     (shouldn't happen after a balanced board is built, but edge-case
-     safety): push the complement of the last active cell.
-
-   CONSTRAINTS
-     • Zero Math.random() calls — fully deterministic.
-     • Never adds a value whose complement is absent.
-     • Minimal: only the exact deficit, never more.
+   RESULT  Player can ALWAYS clear the entire board after one press —
+   guaranteed, deterministic, no random numbers, no orphans.
 ══════════════════════════════════════════════════════════════ */
 
 function smartAdd(bd) {
-
-  /* ── Phase 1: frequency count ── */
-  var freq = {};
+  /* Collect every active (uncleared) cell value in reading order */
+  var mirror = [];
   for (var i = 0; i < bd.length; i++) {
-    if (!bd[i].m) { var v = bd[i].v; freq[v] = (freq[v] || 0) + 1; }
+    if (!bd[i].m) mirror.push({ v: bd[i].v, m: false });
   }
 
-  /* ── Phase 1: build balanced rescue list ── */
-  var rescue = [];
-  var seen   = {};
+  /* If board is already fully cleared, nothing to add */
+  if (mirror.length === 0) return { bd: bd.slice() };
 
-  for (var v = 1; v <= 9; v++) {
-    if (!freq[v] || seen[v]) continue;
-    var c = (v === 5) ? 5 : (10 - v);
-    seen[v] = true;
-    seen[c] = true;
-
-    if (c === v) {
-      /* 5↔5 self-pair: total must be even */
-      if ((freq[5] || 0) % 2 !== 0) rescue.push(5);
-    } else {
-      var cv = freq[v] || 0;
-      var cc = freq[c] || 0;
-      /* add the deficit of whichever side is short */
-      if (cv > cc) {
-        for (var d = 0; d < cv - cc; d++) rescue.push(c);
-      } else if (cc > cv) {
-        for (var d = 0; d < cc - cv; d++) rescue.push(v);
-      }
-    }
-  }
-
-  /* ── Build new board with rescue appended ── */
+  /* Append the mirror copy to the board */
   var nb = bd.slice();
-  for (var i = 0; i < rescue.length; i++) nb.push({ v: rescue[i], m: false });
-
-  /* ── Phase 2: adjacency guarantee ── */
-  /* After balancing, every value has a complement VALUE on the board.
-     But canMatch() may still return false if all same-value or
-     complementary pairs are separated by uncleared cells on every
-     possible path.  Fix: push one guaranteed-adjacent pair at the end.
-     Two cells at indices [n] and [n+1] satisfy mW trivially (no cells
-     between them) so they are always an immediate legal match. */
-  if (!hasMatch(nb)) {
-    /* find the first active cell that still has no canMatch partner */
-    var strandedV = null;
-    outer: for (var i = 0; i < nb.length; i++) {
-      if (nb[i].m) continue;
-      for (var j = 0; j < nb.length; j++) {
-        if (i !== j && canMatch(nb, i, j)) continue outer; /* has partner */
-      }
-      strandedV = nb[i].v;
-      break;
-    }
-    if (strandedV === null) {
-      /* every cell has a partner but hasMatch still false — shouldn't
-         happen; pick any active value as a safety measure */
-      for (var i = nb.length - 1; i >= 0; i--) {
-        if (!nb[i].m) { strandedV = nb[i].v; break; }
-      }
-    }
-    if (strandedV !== null) {
-      var cv = (strandedV === 5) ? 5 : (10 - strandedV);
-      /* push pair back-to-back → mW sees 0 cells between them */
-      nb.push({ v: cv,        m: false });
-      nb.push({ v: strandedV, m: false });
-    }
-  }
-
-  /* ── Phase 3: absolute fallback (empty board edge case) ── */
-  if (rescue.length === 0 && !hasMatch(nb)) {
-    var lv = 5;
-    for (var i = nb.length - 1; i >= 0; i--) { if (!nb[i].m) { lv = nb[i].v; break; } }
-    var lc = (lv === 5) ? 5 : (10 - lv);
-    nb.push({ v: lc, m: false });
-    nb.push({ v: lv, m: false });
-  }
+  for (var i = 0; i < mirror.length; i++) nb.push(mirror[i]);
 
   return { bd: nb };
 }
