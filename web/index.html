@@ -240,10 +240,12 @@ function getBoardWithValidation(lvlIndex){
   if(lvlIndex===0)return generateLevel1Board();
   var cfg=getLevelConfig(lvlIndex);
   for(var attempt=0;attempt<20;attempt++){
-    var board=generateBoard(cfg,attempt);
-    if(hasAnyMatch(board))return board;
+    var b=generateBoard(cfg,attempt);
+    // Use the raw 3-arg matchFinder directly (before adapter override)
+    if(_ha(b))return b;
   }
-  return generateLevel1Board();
+  // Should never reach here since pair[0,1] always adjacent
+  return generateBoard(cfg,0);
 }
 
 /* ── addRowEngine.js inlined ── */
@@ -284,7 +286,7 @@ function executeAddRow(board,cfg,dryPresses){
   for(var ci=0;ci<candidates.length;ci++){
     var val=candidates[ci];
     var newBoard=board.concat([{v:val,m:false}]);
-    if(hasAnyMatch(newBoard))return{board:newBoard,val:val,wasRescue:isRescue};
+    if(_ha(newBoard))return{board:newBoard,val:val,wasRescue:isRescue};
   }
   var lastActive=null;
   for(var i=board.length-1;i>=0;i--){if(!board[i].m){lastActive=board[i].v;break}}
