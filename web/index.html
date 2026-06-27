@@ -173,64 +173,128 @@ function _bld(cfg,att){
   return vals.map(function(v){return{v:v,m:false}})
 }
 
-/* ── Smart Add Row ──
-   Logic:
-   1. For each unmatched value on the board that has NO value-partner
-      (same or sum-to-10), add exactly ONE copy of its best complement.
-      - If value is 5: add another 5 (5+5=10 and 5=5 both work)
-      - Otherwise: prefer same value (most visible match) over sum-to-10
-   2. After adding complements, check if hasMatch() is true.
-   3. If still no match (all values had partners but no adjacent path):
-      Pick the value that appears MOST on the board and add one copy —
-      more copies = more chances for an adjacent match to form.
-   4. Repeat step 3 up to 3 times until hasMatch() is satisfied.
-   5. Never add two of the same value as a "force" fix unless
-      that value genuinely has no partner at all.
-── */
-function smartAdd(bd,cfg,dryP){
-  /* Count unmatched values */
+/* ══════════════════════════════════════════════════════════════
+   INTELLIGENT ADD ROW ENGINE
+   Spec: analyse remaining board → generate minimum rescue row
+   that guarantees ≥1 valid move. No randomness. No orphans.
+══════════════════════════════════════════════════════════════ */
+
+/**
+ * analyseBoard(bd)
+ * Step 1+2: Collect active numbers and classify each digit.
+ * Returns { freq, stranded, hasPairs }
+ *   freq     : {value → count} of all active unmatched cells
+ *   stranded : array of values that have NO complement anywhere on board
+ *              (no same-value partner AND no sum-to-10 partner)
+ *   hasPairs : true if at least one value already has a valid complement
+ */
+function analyseBoard(bd){
   var freq={};
   for(var i=0;i<bd.length;i++)if(!bd[i].m){var v=bd[i].v;freq[v]=(freq[v]||0)+1}
 
-  var newBd=bd.slice();
-
-  /* Step 1: For every value with NO partner anywhere, add its complement */
-  var added=false;
+  var stranded=[];
   for(var v in freq){
     var vn=+v;
-    var same=freq[vn]>=2;          // another copy exists
+    var hasSelf=freq[vn]>=2;          // same-value pair possible
     var comp=10-vn;
-    var sumOk=comp>=1&&comp<=9&&freq[comp]>0;
-    if(!same&&!sumOk){
-      /* No partner — add same value (creates same-value match, easy to spot) */
-      newBd.push({v:vn,m:false});
-      /* Update local freq for subsequent checks */
-      freq[vn]=(freq[vn]||0)+1;
-      added=true;
+    var hasComp=comp>=1&&comp<=9&&comp!==vn&&!!freq[comp]; // sum-to-10 partner exists
+    if(!hasSelf&&!hasComp) stranded.push(vn);
+  }
+
+  var hasPairs=Object.keys(freq).some(function(v){
+    var vn=+v;
+    return freq[vn]>=2||(10-vn>=1&&10-vn<=9&&10-vn!==vn&&freq[10-vn]>0);
+  });
+
+  return{freq:freq,stranded:stranded,hasPairs:hasPairs};
+}
+
+/**
+ * buildRescueRow(analysis)
+ * Step 3: Generate the minimum rescue row.
+ * Rules (in priority order):
+ *  1. For each stranded digit: add its complement (prefer 10-v unless v==5, then add 5)
+ *  2. If board already has pairs (hasPairs=true) but no adjacent path:
+ *     add ONE copy of the most-frequent value (increases adjacency options)
+ *  3. Never add unrelated digits. Never create new orphans.
+ */
+function buildRescueRow(analysis){
+  var rescue=[];
+
+  /* Priority 1: rescue every stranded digit */
+  for(var i=0;i<analysis.stranded.length;i++){
+    var v=analysis.stranded[i];
+    var comp=(v===5)?5:(10-v); // 5↔5, others use 10-v
+    rescue.push(comp);
+  }
+
+  /* Priority 2: board has value-pairs but nothing adjacent yet —
+     add ONE copy of the most-frequent value to improve path options */
+  if(rescue.length===0&&analysis.hasPairs){
+    var best=null,bestC=0;
+    for(var v in analysis.freq){if((analysis.freq[+v]||0)>bestC){bestC=analysis.freq[+v];best=+v}}
+    if(best!==null)rescue.push(best);
+  }
+
+  /* If nothing to rescue and no pairs exist (empty board edge case): add 5 */
+  if(rescue.length===0)rescue.push(5);
+
+  return rescue;
+}
+
+/**
+ * validateRescueRow(bd, rescueVals)
+ * Step 4: Verify the rescue row produces ≥1 valid move.
+ * Also check no NEW stranded values are introduced.
+ * Returns validated board or null if validation fails.
+ */
+function validateRescueRow(bd,rescueVals){
+  var candidate=bd.slice();
+  for(var i=0;i<rescueVals.length;i++)candidate.push({v:rescueVals[i],m:false});
+
+  /* Must have at least one valid match */
+  if(!hasMatch(candidate))return null;
+
+  /* Check no new orphans were created by the rescue row */
+  var analysis=analyseBoard(candidate);
+  if(analysis.stranded.length>analyseBoard(bd).stranded.length)return null;
+
+  return candidate;
+}
+
+/**
+ * smartAdd(bd, cfg, dryP)
+ * Main entry point: analyse → build rescue → validate → fallback if needed.
+ * Returns {bd: newBoard}
+ */
+function smartAdd(bd,cfg,dryP){
+  var analysis=analyseBoard(bd);
+
+  /* Build first rescue attempt */
+  var rescueVals=buildRescueRow(analysis);
+  var validated=validateRescueRow(bd,rescueVals);
+  if(validated)return{bd:validated};
+
+  /* Validation failed — recalculate with a stronger rescue:
+     add complement for EVERY value that doesn't yet have ≥2 copies */
+  var rescueV2=[];
+  for(var v in analysis.freq){
+    var vn=+v;
+    var comp=(vn===5)?5:(10-vn);
+    if(!(analysis.freq[vn]>=2||(comp!==vn&&analysis.freq[comp]>0))){
+      rescueV2.push(comp);
     }
   }
+  if(rescueV2.length===0)rescueV2.push(5); /* final fallback value */
+  var validated2=validateRescueRow(bd,rescueV2);
+  if(validated2)return{bd:validated2};
 
-  /* Step 2: If board now has a match, done */
-  if(hasMatch(newBd))return{bd:newBd};
-
-  /* Step 3: All values have value-partners but no adjacent paths.
-     Add copies of the most-frequent value to create adjacency opportunities.
-     Try up to 3 additions, stop as soon as a match exists. */
-  var keys=Object.keys(freq);
-  keys.sort(function(a,b){return (freq[+b]||0)-(freq[+a]||0)});
-  for(var ki=0;ki<Math.min(keys.length,3);ki++){
-    newBd.push({v:+keys[ki],m:false});
-    if(hasMatch(newBd))return{bd:newBd};
-  }
-
-  /* Step 4: Absolute fallback — add the two cells that form an
-     immediate horizontal adjacent pair (positions n and n+1 are always adjacent) */
-  var fix=keys.length?+keys[0]:5;
-  /* Ensure we have AT LEAST two of this value so they can match */
-  var countFix=0;for(var i=0;i<newBd.length;i++)if(!newBd[i].m&&newBd[i].v===fix)countFix++;
-  if(countFix<2)newBd.push({v:fix,m:false}); /* now there are 2, last two cells are adjacent → match */
-
-  return{bd:newBd};
+  /* Absolute fallback: add two of the same value (guaranteed same-value match) */
+  var anyActive=null;
+  for(var i=bd.length-1;i>=0;i--)if(!bd[i].m){anyActive=bd[i].v;break}
+  var fallbackVal=anyActive||5;
+  var fallbackBd=bd.concat([{v:fallbackVal,m:false},{v:fallbackVal,m:false}]);
+  return{bd:fallbackBd};
 }
 
 /* ── Sound ── */
