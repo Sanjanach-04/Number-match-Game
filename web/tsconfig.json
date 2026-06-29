@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "none",
+    "outDir": "./",
+    "rootDir": "./src",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0"
+  },
+  "files": [
+    "src/global.d.ts",
+    "src/DifficultyEngine.ts",
+    "src/BoardAnalyzer.ts",
+    "src/SolutionGraph.ts",
+    "src/HealthCalculator.ts",
+    "src/RescueEngine.ts",
+    "src/CleanupEngine.ts",
+    "src/AddRowPlanner.ts",
+    "src/BoardGenerator.ts",
+    "src/boardValidator.ts"
+  ]
+}

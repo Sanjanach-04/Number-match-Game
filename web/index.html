@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Number Match v2</title>
+<meta name="description" content="Match same numbers or pairs summing to 10. Deterministic difficulty, always solvable.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-content:center;min-height:100vh}
@@ -117,288 +118,245 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-c
   </div>
 </div>
 </div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DETERMINISTIC ENGINE MODULES — compiled from TypeScript
+     Load order matters: each module depends on symbols from prior ones.
+══════════════════════════════════════════════════════════════ -->
+<script src="rng.js"></script>
+<script src="DifficultyEngine.js"></script>
+<script src="BoardAnalyzer.js"></script>
+<script src="SolutionGraph.js"></script>
+<script src="HealthCalculator.js"></script>
+<script src="RescueEngine.js"></script>
+<script src="CleanupEngine.js"></script>
+<script src="AddRowPlanner.js"></script>
+<script src="BoardGenerator.js"></script>
+<script src="boardValidator.js"></script>
+
 <script>
-/* NUMBER MATCH — complete self-contained engine */
-/* RNG: deterministic XOR-shift, unique per level */
-function RNG(s){this.s=((s^57005)>>>0)||1}
-RNG.prototype.next=function(){var s=this.s;s^=s<<13;s^=s>>17;s^=s<<5;return this.s=s>>>0};
-RNG.prototype.int=function(n){return n<=1?0:this.next()%n};
-RNG.prototype.bool=function(p){return this.next()/4294967295<p};
-RNG.prototype.range=function(a,b){return a+this.int(b-a+1)};
-RNG.prototype.shuffle=function(a){for(var i=a.length-1;i>0;i--){var j=this.int(i+1),t=a[i];a[i]=a[j];a[j]=t}};
+/* ══════════════════════════════════════════════════════════════
+   GAME UI — thin orchestration layer
+   All board logic is now in the deterministic engine modules above.
+   UI is unchanged from the original design.
+══════════════════════════════════════════════════════════════ */
 
-/* Level config — each has a UNIQUE seed and difficulty params */
-var LCFG=[
-  {md:0.90,hm:0.00,dr:0.00,seed:3001003}, /* L1  easy    */
-  {md:0.82,hm:0.10,dr:0.10,seed:3001033}, /* L2          */
-  {md:0.72,hm:0.20,dr:0.20,seed:3001037}, /* L3  normal  */
-  {md:0.62,hm:0.30,dr:0.30,seed:3001039}, /* L4          */
-  {md:0.50,hm:0.45,dr:0.42,seed:3001081}, /* L5  hard    */
-  {md:0.72,hm:0.20,dr:0.20,seed:3001099}, /* L6  RELIEF  */
-  {md:0.55,hm:0.40,dr:0.38,seed:3001117}, /* L7          */
-  {md:0.46,hm:0.50,dr:0.48,seed:3001121}, /* L8          */
-  {md:0.40,hm:0.60,dr:0.55,seed:3001133}, /* L9          */
-  {md:0.34,hm:0.70,dr:0.62,seed:3001151}, /* L10 hardest */
-  {md:0.72,hm:0.20,dr:0.20,seed:3001159}  /* L11 RELIEF  */
-];
-var RELIEF_IDX={5:1,10:1};
-var NC=9;
-
-/* ── Match rules — all take explicit (bd,a,b) ── */
-function vM(va,vb){return va===vb||va+vb===10}
-function mH(bd,a,b){if(Math.floor(a/NC)!==Math.floor(b/NC))return false;var lo=Math.min(a,b),hi=Math.max(a,b);for(var i=lo+1;i<hi;i++)if(!bd[i].m)return false;return true}
-function mV(bd,a,b){if(a%NC!==b%NC)return false;var ra=Math.floor(a/NC),rb=Math.floor(b/NC),lo=Math.min(ra,rb),hi=Math.max(ra,rb),col=a%NC;for(var r=lo+1;r<hi;r++){var c=bd[r*NC+col];if(c&&!c.m)return false}return true}
-function mD(bd,a,b){var ra=Math.floor(a/NC),ca=a%NC,rb=Math.floor(b/NC),cb=b%NC,dr=rb-ra,dc=cb-ca;if(Math.abs(dr)!==Math.abs(dc)||dr===0)return false;var sr=dr>0?1:-1,sc=dc>0?1:-1,r=ra+sr,c=ca+sc;while(r!==rb||c!==cb){var idx=r*NC+c;if(bd[idx]&&!bd[idx].m)return false;r+=sr;c+=sc}return true}
-function mW(bd,a,b){var lo=Math.min(a,b),hi=Math.max(a,b);for(var i=lo+1;i<hi;i++)if(!bd[i].m)return false;return true}
-function canMatch(bd,a,b){if(a===b||!bd[a]||!bd[b]||bd[a].m||bd[b].m)return false;if(!vM(bd[a].v,bd[b].v))return false;return mH(bd,a,b)||mV(bd,a,b)||mD(bd,a,b)||mW(bd,a,b)}
-function allPairs(bd){var p=[];for(var i=0;i<bd.length;i++){if(bd[i].m)continue;for(var j=i+1;j<bd.length;j++){if(bd[j].m)continue;if(canMatch(bd,i,j))p.push([i,j])}}return p}
-function hasMatch(bd){for(var i=0;i<bd.length;i++){if(bd[i].m)continue;for(var j=i+1;j<bd.length;j++){if(bd[j].m)continue;if(canMatch(bd,i,j))return true}}return false}
-function isCleared(bd){for(var i=0;i<bd.length;i++)if(!bd[i].m)return false;return true}
-
-/* ── Board generator — unique per level ── */
-function makeBoard(lvlIdx){
-  if(lvlIdx===0){var r=[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,1,1,2,2,3,3,4,4,5];return r.map(function(v){return{v:v,m:false}})}
-  var cfg=LCFG[Math.min(lvlIdx,LCFG.length-1)];
-  for(var att=0;att<30;att++){var bd=_bld(cfg,att);if(hasMatch(bd))return bd}
-  return _bld(cfg,0)
-}
-function _bld(cfg,att){
-  /* Build board as paired values only — every number has a complement.
-     md = fraction of pairs that are same-value (vs sum-to-10).
-     hm = hidden/noise ratio (extra duplicate values that look hard).
-     T  = 27 cells. We need at least 1 matchable pair on the initial board. */
-  var seed=((cfg.seed+att*9973)>>>0);
-  var rng=new RNG(seed);
-  var T=27;
-
-  /* Pool of all valid pair-types */
-  var SV=[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9]];
-  var S10=[[1,9],[2,8],[3,7],[4,6],[5,5]];
-  var allPairTypes=SV.concat(S10);
-
-  var vals=[];
-
-  /* Step 1: fill with pairs until we reach T cells.
-     Use md to blend same-value vs sum-to-10 pairs.
-     Each iteration adds exactly 2 values (one pair). */
-  while(vals.length+2<=T){
-    var useSV=rng.bool(cfg.md);
-    var pool=useSV?SV:S10;
-    var pair=pool[rng.int(pool.length)];
-    vals.push(pair[0]);
-    vals.push(pair[1]);
-  }
-
-  /* Step 2: if T is odd (27), add one extra single value that already
-     has a complement somewhere in vals — preserves solvability */
-  if(vals.length<T){
-    /* pick a value that already appears in vals so it has a partner */
-    var freq2={};
-    for(var k=0;k<vals.length;k++)freq2[vals[k]]=(freq2[vals[k]]||0)+1;
-    /* find values whose complement is also present */
-    var candidates=[];
-    for(var v=1;v<=9;v++){
-      var comp=(v===5)?5:(10-v);
-      if((freq2[v]||0)>0&&(freq2[comp]||0)>0)candidates.push(v);
-    }
-    if(candidates.length>0){vals.push(candidates[rng.int(candidates.length)])}
-    else{/* fallback: pick any value from the board */
-      vals.push(vals[rng.int(vals.length)]);
-    }
-  }
-
-  /* Step 3: shuffle, but keep first pair at positions 0,1 (guarantee
-     adjacency match available on row 0 col 0-1) */
-  var first0=vals[0],first1=vals[1];
-  rng.shuffle(vals);
-  /* place the first pair somewhere in row 0 (positions 0-8) adjacently */
-  var pos=rng.int(8); /* 0-7: cols 0-7 so pair fits in col+1 */
-  /* swap them in */
-  var idxA=vals.indexOf(first0),idxB=-1;
-  for(var k=0;k<vals.length;k++){if(k!==idxA&&vals[k]===first1){idxB=k;break}}
-  if(idxA>=0&&idxB>=0){
-    var tmp=vals[pos];vals[pos]=vals[idxA];vals[idxA]=tmp;
-    var posB=pos+1;
-    var tmp2=vals[posB];vals[posB]=vals[idxB];vals[idxB]=tmp2;
-  }
-
-  return vals.map(function(v){return{v:v,m:false}})
-}
-
-/* ADD NUMBER ENGINE - Plan, Propose, Validate
-   Step1 Plan: count freq of each active value.
-     A value v is orphaned when count(v) != count(comp(v)).
-     comp(v) = v===5 ? 5 : 10-v
-   Step2 Propose: minimal rescue row.
-     deficit = |count(v) - count(comp(v))|
-     Add that many copies of the short side only.
-     5<->5: if count(5) odd, add one 5.
-   Step3 Validate: simulate board+row, greedy-clear
-     by shortest Manhattan distance. Board must empty.
-     If fail -> broaden: one complement per unique value.
-     Last resort: push adjacent pair for instant match.
-   Examples:
-     [1]->[9] [4]->[6] [5]->[5] [1,8]->[9,2] [3,7]->[] */
-
-function comp(v){return v===5?5:(10-v)}
-
-function getRemainingNumbers(bd){
-  var o=[];for(var i=0;i<bd.length;i++)if(!bd[i].m)o.push(bd[i].v);return o}
-
-function buildRescueRow(bd){
-  /* For every remaining active cell, append its exact complement.
-     Each cell gets its own dedicated partner -> board fully solvable.
-     comp: 1<->9  2<->8  3<->7  4<->6  5<->5                      */
-  var rescue=[];
-  for(var i=0;i<bd.length;i++){
-    if(!bd[i].m) rescue.push(comp(bd[i].v));
-  }
-  return rescue;
-}
-
-function validateRescue(bd,row){
-  /* Valid if: rescue row creates at least one new immediate match.
-     We do NOT require the board to fully empty — that's impossible
-     mid-game. One new playable pair is sufficient. */
-  if(row.length===0)return hasMatch(bd);
-  var sim=[];
-  for(var i=0;i<bd.length;i++)sim.push({v:bd[i].v,m:bd[i].m});
-  for(var i=0;i<row.length;i++)sim.push({v:row[i],m:false});
-  return hasMatch(sim);
-}
-
-function smartAdd(bd){
-  if(getRemainingNumbers(bd).length===0)return{bd:bd.slice()};
-
-  /* Step2: propose minimal deficit rescue */
-  var rescueRow=buildRescueRow(bd);
-
-  /* Step3: validate — at least one new match must exist */
-  var nb=bd.slice();
-  for(var i=0;i<rescueRow.length;i++)nb.push({v:rescueRow[i],m:false});
-
-  /* If deficit row already creates a match, we're done */
-  if(hasMatch(nb))return{bd:nb};
-
-  /* Otherwise: board was already matchable (rescue was empty []),
-     or rescue values exist but paths are all still blocked.
-     Force one adjacent pair at the very end for an instant match. */
-  var fv=null;
-  for(var i=0;i<nb.length;i++){if(!nb[i].m){fv=nb[i].v;break}}
-  if(fv!==null){
-    nb.push({v:comp(fv),m:false});
-    nb.push({v:fv,m:false})}
-  return{bd:nb}
-}
-
-var _ac=null;
-function gAC(){if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return _ac}
-function tone(f,d,t,vol){var ac=gAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(vol||.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
-function sTap(){tone(520,.08)}function sOk(){tone(660,.06);setTimeout(function(){tone(880,.12)},70)}
-function sErr(){tone(220,.15,'sawtooth',.1)}function sAdd(){tone(440,.1,'triangle',.12)}
-function sWin(){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){tone(f,.2)},i*100)})}
+var MAXAR = 6; /* Max Add Row presses per level */
 
 /* ── Game state ── */
-var G={board:[],lvl:0,sel:-1,arUsed:0,dryP:0,msAdd:0,hA:-1,hB:-1,autoT:null};
+var G = { board:[], lvl:0, sel:-1, arUsed:0, dryP:0, msAdd:0, hA:-1, hB:-1, autoT:null };
 
 /* ── DOM helpers ── */
-function ge(id){return document.getElementById(id)}
-function scr(id){ge('sLS').classList.remove('on');ge('sG').classList.remove('on');ge(id).classList.add('on')}
-function sov(id){ge(id).classList.add('on')}
-function hov(id){ge(id).classList.remove('on')}
-function gc(i){return ge('c'+i)}
+function ge(id){ return document.getElementById(id); }
+function scr(id){ ge('sLS').classList.remove('on'); ge('sG').classList.remove('on'); ge(id).classList.add('on'); }
+function sov(id){ ge(id).classList.add('on'); }
+function hov(id){ ge(id).classList.remove('on'); }
+function gc(i){ return ge('c'+i); }
 
-/* ── Start level ── */
+/* ── Start level ──
+   getBoardWithValidation(idx) is from boardValidator.js.
+   It generates a fully solvable 27-cell board using the deterministic
+   SolutionGraph solver, matching the configured matchDensity and scanDistance.
+── */
 function go(idx){
-  if(G.autoT){clearInterval(G.autoT);G.autoT=null}
-  G.lvl=idx;G.sel=-1;G.arUsed=0;G.dryP=0;G.msAdd=0;G.hA=-1;G.hB=-1;
-  G.board=makeBoard(idx);
-  ge('lLv').textContent='Level '+(idx+1);
-  hov('oWin');hov('oOver');hov('oConfirm');
-  render();badges();scr('sG');ge('sa').scrollTop=0
+  if(G.autoT){ clearInterval(G.autoT); G.autoT=null; }
+  G.lvl=idx; G.sel=-1; G.arUsed=0; G.dryP=0; G.msAdd=0; G.hA=-1; G.hB=-1;
+  G.board = getBoardWithValidation(idx);  /* deterministic — same board every run */
+  ge('lLv').textContent = 'Level '+(idx+1);
+  hov('oWin'); hov('oOver'); hov('oConfirm');
+  render(); badges(); scr('sG'); ge('sa').scrollTop = 0;
 }
-function restart(){go(G.lvl)}
-function menu(){if(G.autoT){clearInterval(G.autoT);G.autoT=null}hov('oWin');hov('oOver');hov('oConfirm');scr('sLS')}
+function restart(){ go(G.lvl); }
+function menu(){
+  if(G.autoT){ clearInterval(G.autoT); G.autoT=null; }
+  hov('oWin'); hov('oOver'); hov('oConfirm'); scr('sLS');
+}
 
 /* ── Render ── */
-function render(){var g=ge('grid');g.innerHTML='';for(var i=0;i<G.board.length;i++)g.appendChild(mkc(i,false));hApply()}
-function mkc(i,anim){
-  var el=document.createElement('div');el.id='c'+i;
+function render(){
+  var g=ge('grid'); g.innerHTML='';
+  for(var i=0; i<G.board.length; i++) g.appendChild(mkc(i,false));
+  hApply();
+}
+function mkc(i, anim){
+  var el=document.createElement('div'); el.id='c'+i;
   el.className='cell'+(G.board[i].m?' cm':'')+(anim?' nr':'');
   el.textContent=G.board[i].v;
-  if(!G.board[i].m)el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i));
-  return el
+  if(!G.board[i].m) el.addEventListener('click',(function(ii){return function(){tap(ii);}})(i));
+  return el;
 }
-function rcell(i){var el=gc(i);if(!el)return;el.className='cell'+(G.board[i].m?' cm':'');el.textContent=G.board[i].v;if(!G.board[i].m)el.addEventListener('click',(function(ii){return function(){tap(ii)}})(i))}
-function badges(){var rem=0;for(var i=0;i<G.board.length;i++)if(!G.board[i].m)rem++;ge('lRow').textContent='';ge('lMat').textContent=rem+' left';ge('bAdd').disabled=false;ge('bAdd').textContent='\uFF0B Add Number'}
+function rcell(i){
+  var el=gc(i); if(!el)return;
+  el.className='cell'+(G.board[i].m?' cm':'');
+  el.textContent=G.board[i].v;
+  if(!G.board[i].m) el.addEventListener('click',(function(ii){return function(){tap(ii);}})(i));
+}
+function badges(){
+  var rem=0;
+  for(var i=0;i<G.board.length;i++) if(!G.board[i].m) rem++;
+  var left=MAXAR-G.arUsed;
+  ge('lRow').textContent='+'+left;
+  ge('lMat').textContent=rem+' left';
+  ge('bAdd').disabled=(G.arUsed>=MAXAR);
+  ge('bAdd').textContent='\uFF0B Add Number ('+left+')';
+}
 
-/* ── Tap / match ── */
+/* ── Tap / match ──
+   canMatch()  — BoardAnalyzer.js: 4-check pipeline (horiz/vert/diag/wrap)
+   isBoardCleared() — BoardAnalyzer.js
+── */
 function tap(i){
-  if(G.board[i].m)return;hClear();
-  if(G.sel<0){G.sel=i;var e=gc(i);if(e)e.classList.add('cs');sTap();return}
-  if(G.sel===i){var e=gc(G.sel);if(e)e.classList.remove('cs');G.sel=-1;return}
-  var a=G.sel,b=i;G.sel=-1;var ea=gc(a),eb=gc(b);if(ea)ea.classList.remove('cs');
+  if(G.board[i].m) return; hClear();
+  if(G.sel<0){ G.sel=i; var e=gc(i); if(e)e.classList.add('cs'); sTap(); return; }
+  if(G.sel===i){ var e=gc(G.sel); if(e)e.classList.remove('cs'); G.sel=-1; return; }
+  var a=G.sel, b=i; G.sel=-1;
+  var ea=gc(a), eb=gc(b); if(ea)ea.classList.remove('cs');
   if(canMatch(G.board,a,b)){
-    G.dryP=0;G.msAdd++;G.board[a].m=true;G.board[b].m=true;G.hA=-1;G.hB=-1;sOk();
-    if(ea){ea.classList.add('fok');setTimeout(function(){rcell(a)},360)}
-    if(eb){eb.classList.add('fok');setTimeout(function(){rcell(b)},360)}
+    /* Successful match — reset dry-press counter */
+    G.dryP=0; G.msAdd++; G.board[a].m=true; G.board[b].m=true; G.hA=-1; G.hB=-1; sOk();
+    if(ea){ ea.classList.add('fok'); setTimeout(function(){rcell(a);},360); }
+    if(eb){ eb.classList.add('fok'); setTimeout(function(){rcell(b);},360); }
     badges();
-    setTimeout(function(){if(isCleared(G.board)){showWin();return}},380)
+    setTimeout(function(){
+      if(isBoardCleared(G.board)){ showWin(); return; }
+      if(!hasAnyMatch(G.board) && G.arUsed>=MAXAR){ sov('oOver'); return; }
+    },380);
   }else{
-    if(ea){ea.classList.add('ferr');setTimeout(function(){ea.classList.remove('ferr')},380)}
-    if(eb){eb.classList.add('ferr');setTimeout(function(){eb.classList.remove('ferr')},380)}
-    sErr()
+    if(ea){ ea.classList.add('ferr'); setTimeout(function(){ea.classList.remove('ferr');},380); }
+    if(eb){ eb.classList.add('ferr'); setTimeout(function(){eb.classList.remove('ferr');},380); }
+    sErr();
   }
 }
 
-/* ── Hint: scan in reading order, highlight first valid pair ── */
+/* ── Hint — shows pair with largest gap (most benefit for player) ── */
 function doHint(){
   hClear();
-  var pairs=allPairs(G.board);
-  if(!pairs.length){ge('bAdd').style.boxShadow='0 0 0 3px #e94560';setTimeout(function(){ge('bAdd').style.boxShadow=''},1200);return}
-  G.hA=pairs[0][0];G.hB=pairs[0][1];hApply();
-  var sa=G.hA,sb=G.hB;setTimeout(function(){if(G.hA===sa&&G.hB===sb){hClear();G.hA=-1;G.hB=-1}},2500)
+  var pairs = findAllMatches(G.board);
+  if(!pairs.length){
+    ge('bAdd').style.boxShadow='0 0 0 3px #e94560';
+    setTimeout(function(){ ge('bAdd').style.boxShadow=''; },1200);
+    return;
+  }
+  /* Find pair with largest index gap — the hardest to spot */
+  var best=pairs[0], bg=Math.abs(best[1]-best[0]);
+  for(var i=1;i<pairs.length;i++){
+    var g=Math.abs(pairs[i][1]-pairs[i][0]);
+    if(g>bg){ bg=g; best=pairs[i]; }
+  }
+  G.hA=best[0]; G.hB=best[1]; hApply();
+  var sa=G.hA, sb=G.hB;
+  setTimeout(function(){ if(G.hA===sa&&G.hB===sb){hClear();G.hA=-1;G.hB=-1;} },2500);
 }
-function hApply(){if(G.hA>=0){var e=gc(G.hA);if(e&&!G.board[G.hA].m)e.classList.add('ha')}if(G.hB>=0){var e=gc(G.hB);if(e&&!G.board[G.hB].m)e.classList.add('hb')}}
-function hClear(){if(G.hA>=0){var e=gc(G.hA);if(e){e.classList.remove('ha');e.classList.remove('hb')}}if(G.hB>=0){var e=gc(G.hB);if(e){e.classList.remove('ha');e.classList.remove('hb')}}}
+function hApply(){
+  if(G.hA>=0){ var e=gc(G.hA); if(e&&!G.board[G.hA].m)e.classList.add('ha'); }
+  if(G.hB>=0){ var e=gc(G.hB); if(e&&!G.board[G.hB].m)e.classList.add('hb'); }
+}
+function hClear(){
+  if(G.hA>=0){ var e=gc(G.hA); if(e){e.classList.remove('ha');e.classList.remove('hb');} }
+  if(G.hB>=0){ var e=gc(G.hB); if(e){e.classList.remove('ha');e.classList.remove('hb');} }
+}
 
-/* ── Add Number — always runs immediately, no confirm dialog, no limit ── */
-function doAdd(){doAddActual()}
+/* ── Add Row ──
+   executeAddRow() — AddRowPlanner.js
+   Deterministic, always produces a solvable board.
+   Tiers: Rescue (dryP≥2) → Straggler cleanup → Difficulty-scaled helpers/decoys.
+   Returns {board, val, wasRescue}; board has 9 new cells appended.
+── */
+function doAdd(){
+  if(G.arUsed>=MAXAR){ return; }
+  /* If matches still exist, confirm intent */
+  if(hasAnyMatch(G.board)){
+    sov('oConfirm'); return;
+  }
+  doAddActual();
+}
 function doAddActual(){
-  hClear();G.hA=-1;G.hB=-1;
-  var res=smartAdd(G.board);
-  var prevLen=G.board.length;
-  G.board=res.bd;
-  /* Append all new cells to DOM */
+  if(G.arUsed>=MAXAR){ return; }
+  hClear(); G.hA=-1; G.hB=-1;
+  var cfg = getLevelConfig(G.lvl);
+  var res = executeAddRow(G.board, cfg, G.dryP);
+  var prevLen = G.board.length;
+  G.board = res.board;
+  /* Update dry-press counter */
+  if(res.wasRescue){ G.dryP=0; } else { G.dryP++; }
+  G.arUsed++;
+  /* Append new cells to DOM with pop animation */
   var g=ge('grid');
-  for(var i=prevLen;i<G.board.length;i++){
+  for(var i=prevLen; i<G.board.length; i++){
     g.appendChild(mkc(i,true));
   }
-  sAdd();badges();
-  setTimeout(function(){ge('sa').scrollTop=ge('sa').scrollHeight},60);
+  sAdd(); badges();
+  setTimeout(function(){ ge('sa').scrollTop=ge('sa').scrollHeight; },60);
+  /* Check game over after exhausting Add Rows */
+  if(G.arUsed>=MAXAR && !hasAnyMatch(G.board)){
+    setTimeout(function(){ sov('oOver'); },700);
+  }
 }
 
 /* ── Win ── */
 function showWin(){
-  sWin();var nx=G.lvl+1,last=nx>=LCFG.length;
-  ge('wSub').textContent=last?'You cleared all levels! \uD83C\uDFC6':'Next: Level '+(nx+1);
-  ge('bNext').style.display=last?'none':'block';ge('wCd').textContent=last?'':3;sov('oWin');
-  if(!last){var cd=3;G.autoT=setInterval(function(){cd--;ge('wCd').textContent=cd>0?cd:'';if(cd<=0){clearInterval(G.autoT);G.autoT=null;hov('oWin');go(nx)}},1000)}
+  sWin();
+  var nx=G.lvl+1, last=(nx>=LEVEL_CONFIG.length);
+  ge('wSub').textContent = last ? 'You cleared all levels! \uD83C\uDFC6' : 'Next: Level '+(nx+1);
+  ge('bNext').style.display = last?'none':'block';
+  ge('wCd').textContent = last?'':3;
+  sov('oWin');
+  if(!last){
+    var cd=3;
+    G.autoT=setInterval(function(){
+      cd--; ge('wCd').textContent=(cd>0?cd:'');
+      if(cd<=0){ clearInterval(G.autoT); G.autoT=null; hov('oWin'); go(nx); }
+    },1000);
+  }
 }
 
-/* ── Level select ── */
+/* ── Level select ──
+   LEVEL_CONFIG from DifficultyEngine.js — 11 levels, sawtooth curve.
+   RELIEF_IDX marks levels 6 and 11 as relief levels (badge + warm color).
+── */
 function buildLevels(){
-  var g=ge('lgrid');g.innerHTML='';
-  for(var i=0;i<LCFG.length;i++){(function(idx){var b=document.createElement('div');b.className='lb'+(RELIEF_IDX[idx]?' relief':'');b.innerHTML=(RELIEF_IDX[idx]?'<span class="le">EASY</span>':'')+'<span class="ln">'+(idx+1)+'</span>';b.onclick=function(){go(idx)};g.appendChild(b)})(i)}
+  var g=ge('lgrid'); g.innerHTML='';
+  for(var i=0; i<LEVEL_CONFIG.length; i++){
+    (function(idx){
+      var b=document.createElement('div');
+      var isRelief=!!RELIEF_IDX[idx];
+      b.className='lb'+(isRelief?' relief':'');
+      b.innerHTML=(isRelief?'<span class="le">EASY</span>':'')+'<span class="ln">'+(idx+1)+'</span>';
+      b.onclick=function(){ go(idx); };
+      g.appendChild(b);
+    })(i);
+  }
 }
+
+/* ── Audio ── */
+var _ac=null;
+function gAC(){ if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} return _ac; }
+function tone(f,d,t,vol){
+  var ac=gAC(); if(!ac)return;
+  var o=ac.createOscillator(), g=ac.createGain();
+  o.type=t||'sine'; o.frequency.value=f;
+  g.gain.setValueAtTime(vol||.15,ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);
+  o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime+d);
+}
+function sTap(){ tone(520,.08); }
+function sOk(){ tone(660,.06); setTimeout(function(){tone(880,.12);},70); }
+function sErr(){ tone(220,.15,'sawtooth',.1); }
+function sAdd(){ tone(440,.1,'triangle',.12); }
+function sWin(){ [523,659,784,1047].forEach(function(f,i){setTimeout(function(){tone(f,.2);},i*100);}); }
 
 /* ── Wire buttons ── */
-ge('bBack').onclick=menu;ge('bAdd').onclick=doAdd;ge('hBtn').onclick=doHint;ge('hFic').onclick=doHint;
-ge('bRst').onclick=restart;
-ge('bNext').onclick=function(){hov('oWin');if(G.autoT){clearInterval(G.autoT);G.autoT=null}go(G.lvl+1)};
-ge('bWM').onclick=menu;ge('bRetry').onclick=restart;ge('bOM').onclick=menu;
-ge('bCY').onclick=function(){hov('oConfirm');doAddActual()};
-ge('bCN').onclick=function(){hov('oConfirm')};
+ge('bBack').onclick  = menu;
+ge('bAdd').onclick   = doAdd;
+ge('hBtn').onclick   = doHint;
+ge('hFic').onclick   = doHint;
+ge('bRst').onclick   = restart;
+ge('bNext').onclick  = function(){ hov('oWin'); if(G.autoT){clearInterval(G.autoT);G.autoT=null;} go(G.lvl+1); };
+ge('bWM').onclick    = menu;
+ge('bRetry').onclick = restart;
+ge('bOM').onclick    = menu;
+ge('bCY').onclick    = function(){ hov('oConfirm'); doAddActual(); };
+ge('bCN').onclick    = function(){ hov('oConfirm'); };
 
 /* ── Boot ── */
 buildLevels();

@@ -4,12 +4,15 @@
  */
 if (typeof require !== 'undefined') {
   eval(require('fs').readFileSync(__dirname + '/rng.js', 'utf8'));
-  eval(require('fs').readFileSync(__dirname + '/levelConfig.js', 'utf8'));
-  eval(require('fs').readFileSync(__dirname + '/matchFinder.js', 'utf8'));
-  eval(require('fs').readFileSync(__dirname + '/solver.js', 'utf8'));
-  eval(require('fs').readFileSync(__dirname + '/boardGenerator.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/DifficultyEngine.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/BoardAnalyzer.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/SolutionGraph.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/HealthCalculator.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/RescueEngine.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/CleanupEngine.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/AddRowPlanner.js', 'utf8'));
+  eval(require('fs').readFileSync(__dirname + '/BoardGenerator.js', 'utf8'));
   eval(require('fs').readFileSync(__dirname + '/boardValidator.js', 'utf8'));
-  eval(require('fs').readFileSync(__dirname + '/addRowEngine.js', 'utf8'));
 }
 
 var passed = 0, failed = 0;
@@ -91,7 +94,7 @@ while (matches.length > 1) {
 var cfg1 = getLevelConfig(0);
 var addResult = executeAddRow(testBoard, cfg1, 0);
 assert('executeAddRow returns board', Array.isArray(addResult.board));
-assert('board grows by 1 after add', addResult.board.length === testBoard.length + 1);
+assert('board grows by 9 after add', addResult.board.length === testBoard.length + 9);
 assert('injected value is 1–9', addResult.val >= 1 && addResult.val <= 9);
 assert('board has match after add', hasAnyMatch(addResult.board));
 
