@@ -35,7 +35,13 @@ public class Board {
     public void addRow(int[] values) {
         int r = rowCount;
         for (int c = 0; c < COLS; c++) {
-            cells.add(new Cell(values[c], r, c));
+            if (c < values.length) {
+                cells.add(new Cell(values[c], r, c));
+            } else {
+                Cell cell = new Cell(1, r, c);
+                cell.markMatched();
+                cells.add(cell);
+            }
         }
         rowCount++;
     }

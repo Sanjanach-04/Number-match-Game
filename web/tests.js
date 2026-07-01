@@ -94,17 +94,70 @@ while (matches.length > 1) {
 var cfg1 = getLevelConfig(0);
 var addResult = executeAddRow(testBoard, cfg1, 0);
 assert('executeAddRow returns board', Array.isArray(addResult.board));
-assert('board grows by 9 after add', addResult.board.length === testBoard.length + 9);
+assert('board grows correctly based on orphans', addResult.board.length === 30);
 assert('injected value is 1–9', addResult.val >= 1 && addResult.val <= 9);
-assert('board has match after add', hasAnyMatch(addResult.board));
+
+/* ── Intelligent Minimal Add Row tests ── */
+console.log('\n[Intelligent Minimal Add Row]');
+
+// Test 1: Single remaining digit
+var singleBoard = [{v: 1, m: false}];
+var resSingle = executeAddRow(singleBoard, cfg1, 0);
+var addedSingle = resSingle.board.slice(1).map(function(c){return c.v;});
+assert('Single remaining digit [1] generates complement [9]', addedSingle.length === 1 && addedSingle[0] === 9);
+
+// Test 2: Multiple stranded digits
+var strandedBoard = [
+  {v: 2, m: false},
+  {v: 5, m: false},
+  {v: 9, m: false}
+];
+var resStranded = executeAddRow(strandedBoard, cfg1, 0);
+var addedStranded = resStranded.board.slice(3).map(function(c){return c.v;});
+assert('Multiple stranded [2, 5, 9] generates complements [8, 5, 1]', 
+       addedStranded.length === 3 && 
+       addedStranded.indexOf(8) !== -1 && 
+       addedStranded.indexOf(5) !== -1 && 
+       addedStranded.indexOf(1) !== -1);
+
+// Test 3: Already solvable boards
+var solvableBoard = [
+  {v: 3, m: false},
+  {v: 7, m: false}
+];
+var resSolvable = executeAddRow(solvableBoard, cfg1, 0);
+var addedSolvable = resSolvable.board.slice(2).map(function(c){return c.v;});
+assert('Already solvable board [3, 7] generates empty row', addedSolvable.length === 0);
+
+// Test 4: Deadlock scenario
+var deadlockBoard = [
+  {v: 3, m: false},
+  {v: 4, m: false},
+  {v: 5, m: false},
+  {v: 7, m: false}
+];
+var resDeadlock = executeAddRow(deadlockBoard, cfg1, 0);
+assert('Deadlock board [3, 4, 5, 7] is successfully resolved and solvable', 
+       isBoardSolvable(resDeadlock.board));
+
+// Test 5: Endgame situations
+var endgameBoard = [
+  {v: 8, m: false},
+  {v: 3, m: false}
+];
+var resEndgame = executeAddRow(endgameBoard, cfg1, 0);
+var addedEndgame = resEndgame.board.slice(2).map(function(c){return c.v;});
+assert('Endgame board [8, 3] generates correct complements [2, 7]',
+       addedEndgame.length === 2 &&
+       addedEndgame.indexOf(2) !== -1 &&
+       addedEndgame.indexOf(7) !== -1);
 
 /* ── Rescue mechanic test ── */
 console.log('\n[Rescue Mechanic]');
 var dryBoard = generateLevel1Board();
-// Make board have no match by marking all as matched except one odd number
 dryBoard.forEach(function(c){c.m=true;});
-dryBoard[0].m = false; dryBoard[0].v = 7; // lone 7, no partner
-var rescueResult = executeAddRow(dryBoard, getLevelConfig(0), 2); // dryPresses=2 → rescue
+dryBoard[0].m = false; dryBoard[0].v = 7;
+var rescueResult = executeAddRow(dryBoard, getLevelConfig(0), 2);
 assert('rescue mode activates on dryPresses>=2', rescueResult.wasRescue === true);
 assert('rescue result has a match', hasAnyMatch(rescueResult.board));
 

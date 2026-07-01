@@ -2,96 +2,92 @@
 // AddRowPlanner.ts - Deterministic Add Row planning with health repair (v3 sync)
 // Generate next row values using difficulty settings and board analysis.
 function planNextRow(board, cfg, rng) {
-    var stragglers = findStragglers(board);
-    var diff = cfg ? cfg.difficultyScore : 3;
-    var trueDecoyRatio = cfg ? (cfg.trueDecoyRatio !== undefined ? cfg.trueDecoyRatio : cfg.decoyRatio) : 0.18;
-    // Count active values on the current board to know what has partners
+    // 1. Gather all active cells
+    var activeCells = [];
     var activeFreq = {};
     for (var i = 0; i < board.length; i++) {
         if (!board[i].m) {
             var v = board[i].v;
+            activeCells.push({ idx: i, v: v });
             activeFreq[v] = (activeFreq[v] || 0) + 1;
         }
     }
-    var row = [];
-    var stragglerSlotsFilled = 0;
-    // TIER 1: Straggler complements (each straggler gets 1 cell)
-    for (var i = 0; i < stragglers.length && row.length < 9; i++) {
-        var sv = stragglers[i];
-        row.push(comp(sv)); // complement of straggler — matches it
-        stragglerSlotsFilled++;
-    }
-    var slots = 9 - row.length;
-    var helperSlots = Math.ceil(slots * (1 - trueDecoyRatio));
-    var decoySlots = slots - helperSlots;
-    // TIER 2: Helper Fill
-    var activeVals = [];
-    for (var v = 1; v <= 9; v++) {
-        if (activeFreq[v])
-            activeVals.push(v);
-    }
-    if (activeVals.length === 0)
-        activeVals = [1, 2, 3, 4, 5];
-    for (var h = 0; h < helperSlots; h++) {
-        var val = activeVals[rng.int(activeVals.length)];
-        row.push(comp(val)); // complement of an active cell
-    }
-    // TIER 3: Decoy Fill (true decoys: no partners on the board)
-    var trueDecoys = [];
-    for (var d = 1; d <= 9; d++) {
-        var partner = comp(d);
-        if (!activeFreq[d] && !activeFreq[partner]) {
-            trueDecoys.push(d);
+    // 2. Identify orphans and calculate missing complements
+    var required = [];
+    for (var d = 1; d <= 4; d++) {
+        var partner = 10 - d;
+        var countD = activeFreq[d] || 0;
+        var countP = activeFreq[partner] || 0;
+        if (countD > countP) {
+            var diff = countD - countP;
+            for (var k = 0; k < diff; k++) {
+                required.push(partner);
+            }
         }
-    }
-    if (trueDecoys.length === 0) {
-        // Fallback decoys: not active on board
-        for (var d = 1; d <= 9; d++) {
-            if (!activeFreq[d]) {
-                trueDecoys.push(d);
+        else if (countP > countD) {
+            var diff = countP - countD;
+            for (var k = 0; k < diff; k++) {
+                required.push(d);
             }
         }
     }
-    if (trueDecoys.length === 0) {
-        trueDecoys = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    // For 5: count must be even
+    var count5 = activeFreq[5] || 0;
+    if (count5 % 2 !== 0) {
+        required.push(5);
     }
-    for (var d = 0; d < decoySlots; d++) {
-        var decoy = trueDecoys[rng.int(trueDecoys.length)];
-        row.push(decoy);
-    }
-    // POSITIONING / SHUFFLING:
-    if (diff === 1) {
-        // Level 1: keep straggler complements at front; shuffle and force adjacent pairs for the rest
-        var front = row.slice(0, stragglerSlotsFilled);
-        var rest = row.slice(stragglerSlotsFilled);
-        rng.shuffle(rest);
-        for (var i = 0; i < rest.length - 1; i += 2) {
-            rest[i + 1] = comp(rest[i]);
+    // 3. If required is empty but board is not solvable (or has no matches), force an injection
+    var currentSolvable = isBoardSolvable(board);
+    var hasMatches = hasAnyMatch(board);
+    if (required.length === 0) {
+        if (!currentSolvable || !hasMatches) {
+            if (activeCells.length > 0) {
+                var lastActive = activeCells[activeCells.length - 1];
+                var partner = comp(lastActive.v);
+                required.push(partner);
+                required.push(lastActive.v);
+            }
+            else {
+                required.push(5);
+                required.push(5);
+            }
         }
-        row = front.concat(rest);
-    }
-    else if (diff === 2) {
-        // Level 2: preserve some adjacency
-        var front = row.slice(0, stragglerSlotsFilled);
-        var rest = row.slice(stragglerSlotsFilled);
-        rng.shuffle(rest);
-        for (var i = 0; i < rest.length - 2; i += 3) {
-            rest[i + 1] = comp(rest[i]);
+        else {
+            // Already solvable and has matches! No Add Row required.
+            return [];
         }
-        row = front.concat(rest);
     }
-    else if (diff <= 6) {
-        // Level 3-6 (relief 6): light shuffle (straggler complements remain at front)
-        var front = row.slice(0, stragglerSlotsFilled);
-        var rest = row.slice(stragglerSlotsFilled);
-        rng.shuffle(rest);
-        row = front.concat(rest);
+    // 4. Try shuffles of the required list to find a layout that keeps the board solvable
+    var bestRow = required.slice();
+    var bestAttempts = 30;
+    var success = false;
+    var extraPairsAdded = 0;
+    while (!success && extraPairsAdded < 5) {
+        for (var attempt = 0; attempt < bestAttempts; attempt++) {
+            var attemptRow = bestRow.slice();
+            rng.shuffle(attemptRow);
+            var tempBoard = board.concat(attemptRow.map(function (v) { return { v: v, m: false }; }));
+            if (hasAnyMatch(tempBoard) && isBoardSolvable(tempBoard)) {
+                bestRow = attemptRow;
+                success = true;
+                break;
+            }
+        }
+        if (success)
+            break;
+        // If not successful, add a complement pair of some active board cell to help unblock
+        if (activeCells.length > 0) {
+            var randomVal = activeCells[rng.int(activeCells.length)].v;
+            bestRow.push(comp(randomVal));
+            bestRow.push(randomVal);
+        }
+        else {
+            bestRow.push(5);
+            bestRow.push(5);
+        }
+        extraPairsAdded++;
     }
-    else {
-        // Level 7-10: full shuffle (maximum scan distance)
-        rng.shuffle(row);
-    }
-    return row;
+    return bestRow;
 }
 // Select complement value deterministically based on weight
 function selectWeighted(candidates, rng) {
@@ -122,44 +118,16 @@ function boardSeed(board) {
 }
 // Main execution entry point for Add Row
 function executeAddRow(board, cfg, dryPresses) {
-    var isRescue = shouldRescue(dryPresses);
     var seed = boardSeed(board);
     var rng = new RNG(seed);
-    var newRow = [];
-    var newBoard = [];
-    var wasRescue = isRescue;
-    // Capture stragglers BEFORE generating the row (board state at call time)
+    var newRow = planNextRow(board, cfg, rng);
+    var newBoard = board.concat(newRow.map(function (v) { return { v: v, m: false }; }));
     var stragglers = findStragglers(board);
-    if (isRescue) {
-        newRow = generateRescueRow(board, rng);
-        newBoard = board.concat(newRow.map(function (v) { return { v: v, m: false }; }));
-    }
-    else {
-        var success = false;
-        for (var attempt = 0; attempt < 20; attempt++) {
-            var attemptSeed = (seed + attempt * 7919) >>> 0;
-            var attemptRng = new RNG(attemptSeed);
-            newRow = planNextRow(board, cfg, attemptRng);
-            newBoard = board.concat(newRow.map(function (v) { return { v: v, m: false }; }));
-            if (isBoardSolvable(newBoard)) {
-                success = true;
-                break;
-            }
-        }
-        if (!success) {
-            // Fallback: force a rescue row to guarantee solvability
-            newRow = generateRescueRow(board, rng);
-            newBoard = board.concat(newRow.map(function (v) { return { v: v, m: false }; }));
-            wasRescue = true;
-        }
-    }
-    // val: if stragglers existed, return the straggler value so callers can
-    // confirm which straggler was addressed. Otherwise return first injected cell.
-    var reportVal = stragglers.length > 0 ? stragglers[0] : newRow[0];
+    var reportVal = stragglers.length > 0 ? stragglers[0] : (newRow.length > 0 ? newRow[0] : 5);
     return {
         board: newBoard,
         val: reportVal,
-        wasRescue: wasRescue
+        wasRescue: shouldRescue(dryPresses)
     };
 }
 // Wrapper class for legacy game.js instantiation
