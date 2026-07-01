@@ -1,70 +1,103 @@
-// AddRowPlanner.ts - Deterministic Add Row planning with health repair
+// AddRowPlanner.ts - Deterministic Add Row planning with health repair (v3 sync)
 
 interface Cell {
   v: number;
   m: boolean;
 }
 
-// Generate next row values using difficulty settings and board analysis
+// Generate next row values using difficulty settings and board analysis.
 function planNextRow(board: Cell[], cfg: LevelConfig, rng: any): number[] {
   var stragglers = findStragglers(board);
-  var weightedComplements = getWeightedActiveComplements(board);
-
-  var row: number[] = new Array(9);
-  var decoyRatio = cfg ? cfg.decoyRatio : 0.18;
-  var decoyCount = Math.floor(9 * decoyRatio);
-  var helperCount = 9 - decoyCount;
-
-  var idx = 0;
-  // 1. Prioritize straggler complements
-  for (var i = 0; i < stragglers.length && idx < helperCount; i++) {
-    row[idx++] = comp(stragglers[i]);
-  }
-
-  // 2. Fill helpers with weighted active complements
-  while (idx < helperCount) {
-    if (weightedComplements.length > 0) {
-      row[idx++] = selectWeighted(weightedComplements, rng);
-    } else {
-      row[idx++] = rng.range(1, 9);
-    }
-  }
-
-  // 3. Fill the remainder with decoys
-  while (idx < 9) {
-    var decoyVal = 1;
-    var found = false;
-    for (var tries = 0; tries < 20; tries++) {
-      var candidate = rng.range(1, 9);
-      var hasMatch = false;
-      for (var k = 0; k < board.length; k++) {
-        if (!board[k].m && (board[k].v === candidate || (board[k].v + candidate) === 10)) {
-          hasMatch = true;
-          break;
-        }
-      }
-      if (!hasMatch) {
-        decoyVal = candidate;
-        found = true;
-        break;
-      }
-    }
-    if (!found) decoyVal = rng.range(1, 9);
-    row[idx++] = decoyVal;
-  }
-
-  // 4. Position formatting based on help level / difficulty score
   var diff = cfg ? cfg.difficultyScore : 3;
-  if (diff === 1) {
-    // Level 1: Make adjacent matches in the row
-    for (var i = 0; i < 8; i += 2) {
-      row[i + 1] = comp(row[i]);
+  var trueDecoyRatio = cfg ? (cfg.trueDecoyRatio !== undefined ? cfg.trueDecoyRatio : cfg.decoyRatio) : 0.18;
+
+  // Count active values on the current board to know what has partners
+  var activeFreq: { [key: number]: number } = {};
+  for (var i = 0; i < board.length; i++) {
+    if (!board[i].m) {
+      var v = board[i].v;
+      activeFreq[v] = (activeFreq[v] || 0) + 1;
     }
-  } else if (diff <= 3) {
-    // Level 3: Small scanning distance
-    rng.shuffle(row);
+  }
+
+  var row: number[] = [];
+  var stragglerSlotsFilled = 0;
+
+  // TIER 1: Straggler complements (each straggler gets 1 cell)
+  for (var i = 0; i < stragglers.length && row.length < 9; i++) {
+    var sv = stragglers[i];
+    row.push(comp(sv)); // complement of straggler — matches it
+    stragglerSlotsFilled++;
+  }
+
+  var slots = 9 - row.length;
+  var helperSlots = Math.ceil(slots * (1 - trueDecoyRatio));
+  var decoySlots = slots - helperSlots;
+
+  // TIER 2: Helper Fill
+  var activeVals: number[] = [];
+  for (var v = 1; v <= 9; v++) {
+    if (activeFreq[v]) activeVals.push(v);
+  }
+  if (activeVals.length === 0) activeVals = [1, 2, 3, 4, 5];
+
+  for (var h = 0; h < helperSlots; h++) {
+    var val = activeVals[rng.int(activeVals.length)];
+    row.push(comp(val)); // complement of an active cell
+  }
+
+  // TIER 3: Decoy Fill (true decoys: no partners on the board)
+  var trueDecoys: number[] = [];
+  for (var d = 1; d <= 9; d++) {
+    var partner = comp(d);
+    if (!activeFreq[d] && !activeFreq[partner]) {
+      trueDecoys.push(d);
+    }
+  }
+  if (trueDecoys.length === 0) {
+    // Fallback decoys: not active on board
+    for (var d = 1; d <= 9; d++) {
+      if (!activeFreq[d]) {
+        trueDecoys.push(d);
+      }
+    }
+  }
+  if (trueDecoys.length === 0) {
+    trueDecoys = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  }
+
+  for (var d = 0; d < decoySlots; d++) {
+    var decoy = trueDecoys[rng.int(trueDecoys.length)];
+    row.push(decoy);
+  }
+
+  // POSITIONING / SHUFFLING:
+  if (diff === 1) {
+    // Level 1: keep straggler complements at front; shuffle and force adjacent pairs for the rest
+    var front = row.slice(0, stragglerSlotsFilled);
+    var rest = row.slice(stragglerSlotsFilled);
+    rng.shuffle(rest);
+    for (var i = 0; i < rest.length - 1; i += 2) {
+      rest[i + 1] = comp(rest[i]);
+    }
+    row = front.concat(rest);
+  } else if (diff === 2) {
+    // Level 2: preserve some adjacency
+    var front = row.slice(0, stragglerSlotsFilled);
+    var rest = row.slice(stragglerSlotsFilled);
+    rng.shuffle(rest);
+    for (var i = 0; i < rest.length - 2; i += 3) {
+      rest[i + 1] = comp(rest[i]);
+    }
+    row = front.concat(rest);
+  } else if (diff <= 6) {
+    // Level 3-6 (relief 6): light shuffle (straggler complements remain at front)
+    var front = row.slice(0, stragglerSlotsFilled);
+    var rest = row.slice(stragglerSlotsFilled);
+    rng.shuffle(rest);
+    row = front.concat(rest);
   } else {
-    // Harder levels: Shuffle and let spacing distribute
+    // Level 7-10: full shuffle (maximum scan distance)
     rng.shuffle(row);
   }
 
@@ -107,6 +140,8 @@ function executeAddRow(board: Cell[], cfg: LevelConfig, dryPresses: number): { b
   var newRow: number[] = [];
   var newBoard: Cell[] = [];
   var wasRescue = isRescue;
+  // Capture stragglers BEFORE generating the row (board state at call time)
+  var stragglers = findStragglers(board);
 
   if (isRescue) {
     newRow = generateRescueRow(board, rng);
@@ -133,9 +168,12 @@ function executeAddRow(board: Cell[], cfg: LevelConfig, dryPresses: number): { b
     }
   }
 
+  // val: if stragglers existed, return the straggler value so callers can
+  // confirm which straggler was addressed. Otherwise return first injected cell.
+  var reportVal = stragglers.length > 0 ? stragglers[0] : newRow[0];
   return {
     board: newBoard,
-    val: newRow[0],
+    val: reportVal,
     wasRescue: wasRescue
   };
 }

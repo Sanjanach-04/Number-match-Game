@@ -12,74 +12,122 @@ interface LevelConfig {
   expectedAddRow: number;
   difficultyScore: number;
   seed: number;
+  minGap?: number;
+  maxGap?: number;
+  trueDecoyRatio?: number;
+  frictionFactor?: number;
 }
 
 var LEVEL_CONFIG: LevelConfig[] = [
-  // Level 1: Easy, target time 45s, 1 add (90% prob)
   {
-    matchDensity: 0.70, decoyRatio: 0.00, chainLength: 2, averageBranching: 1.2,
-    scanDistance: "1-3", isolatedCells: 0, addRowDifficulty: 1, targetSolveTime: 45,
-    expectedAddRow: 1, difficultyScore: 1, seed: 1000003
+    matchDensity: 0.90, frictionFactor: 0.00, trueDecoyRatio: 0.00,
+    minGap: 1,  maxGap: 3,
+    chainLength: 2, averageBranching: 1.2,
+    scanDistance: "1-3", isolatedCells: 0,
+    addRowDifficulty: 1, targetSolveTime: 45,
+    expectedAddRow: 1, difficultyScore: 1,
+    seed: 1000003,
+    decoyRatio: 0.00
   },
-  // Level 2: Medium Easy, target 60s, 1-2 adds
   {
-    matchDensity: 0.65, decoyRatio: 0.08, chainLength: 3, averageBranching: 1.5,
-    scanDistance: "2-4", isolatedCells: 1, addRowDifficulty: 2, targetSolveTime: 60,
-    expectedAddRow: 1.5, difficultyScore: 2, seed: 1000033
+    matchDensity: 0.82, frictionFactor: 0.10, trueDecoyRatio: 0.05,
+    minGap: 2,  maxGap: 4,
+    chainLength: 3, averageBranching: 1.5,
+    scanDistance: "2-4", isolatedCells: 1,
+    addRowDifficulty: 2, targetSolveTime: 60,
+    expectedAddRow: 1.5, difficultyScore: 2,
+    seed: 1000033,
+    decoyRatio: 0.08
   },
-  // Level 3: Medium, target 90s, 2-3 adds
   {
-    matchDensity: 0.60, decoyRatio: 0.18, chainLength: 4, averageBranching: 1.8,
-    scanDistance: "3-5", isolatedCells: 2, addRowDifficulty: 3, targetSolveTime: 90,
-    expectedAddRow: 2.5, difficultyScore: 3, seed: 1000037
+    matchDensity: 0.70, frictionFactor: 0.25, trueDecoyRatio: 0.15,
+    minGap: 3,  maxGap: 6,
+    chainLength: 4, averageBranching: 1.8,
+    scanDistance: "3-6", isolatedCells: 2,
+    addRowDifficulty: 3, targetSolveTime: 90,
+    expectedAddRow: 2.5, difficultyScore: 3,
+    seed: 1000037,
+    decoyRatio: 0.18
   },
-  // Level 4: Medium Hard, target 120s, 2-3 adds
   {
-    matchDensity: 0.55, decoyRatio: 0.28, chainLength: 5, averageBranching: 2.0,
-    scanDistance: "4-6", isolatedCells: 3, addRowDifficulty: 4, targetSolveTime: 120,
-    expectedAddRow: 2.5, difficultyScore: 4, seed: 1000039
+    matchDensity: 0.60, frictionFactor: 0.38, trueDecoyRatio: 0.25,
+    minGap: 4,  maxGap: 9,
+    chainLength: 5, averageBranching: 2.0,
+    scanDistance: "4-9", isolatedCells: 3,
+    addRowDifficulty: 4, targetSolveTime: 120,
+    expectedAddRow: 2.5, difficultyScore: 4,
+    seed: 1000039,
+    decoyRatio: 0.28
   },
-  // Level 5: Hard, target 150s, 2-3 adds
   {
-    matchDensity: 0.45, decoyRatio: 0.42, chainLength: 6, averageBranching: 2.2,
-    scanDistance: "5-8", isolatedCells: 4, addRowDifficulty: 5, targetSolveTime: 150,
-    expectedAddRow: 2.5, difficultyScore: 6, seed: 1000081
+    matchDensity: 0.48, frictionFactor: 0.50, trueDecoyRatio: 0.40,
+    minGap: 6,  maxGap: 14,
+    chainLength: 6, averageBranching: 2.2,
+    scanDistance: "6-14", isolatedCells: 4,
+    addRowDifficulty: 5, targetSolveTime: 150,
+    expectedAddRow: 2.5, difficultyScore: 6,
+    seed: 1000081,
+    decoyRatio: 0.42
   },
-  // Level 6: Relief (Medium), target 90s, 2-4 adds
   {
-    matchDensity: 0.60, decoyRatio: 0.18, chainLength: 4, averageBranching: 1.8,
-    scanDistance: "3-5", isolatedCells: 2, addRowDifficulty: 3, targetSolveTime: 90,
-    expectedAddRow: 3.0, difficultyScore: 3, seed: 1000099
+    matchDensity: 0.70, frictionFactor: 0.25, trueDecoyRatio: 0.15,
+    minGap: 3,  maxGap: 6,
+    chainLength: 4, averageBranching: 1.8,
+    scanDistance: "3-6", isolatedCells: 2,
+    addRowDifficulty: 3, targetSolveTime: 90,
+    expectedAddRow: 3.0, difficultyScore: 3,
+    seed: 1000099,
+    decoyRatio: 0.18
   },
-  // Level 7: Hard, target 120s, 3-4 adds
   {
-    matchDensity: 0.50, decoyRatio: 0.36, chainLength: 5, averageBranching: 2.0,
-    scanDistance: "4-7", isolatedCells: 3, addRowDifficulty: 6, targetSolveTime: 120,
-    expectedAddRow: 3.5, difficultyScore: 6, seed: 1000117
+    matchDensity: 0.54, frictionFactor: 0.45, trueDecoyRatio: 0.35,
+    minGap: 5,  maxGap: 12,
+    chainLength: 5, averageBranching: 2.0,
+    scanDistance: "5-12", isolatedCells: 3,
+    addRowDifficulty: 6, targetSolveTime: 120,
+    expectedAddRow: 3.5, difficultyScore: 6,
+    seed: 1000117,
+    decoyRatio: 0.36
   },
-  // Level 8: Hard+, target 150s, 3-5 adds
   {
-    matchDensity: 0.42, decoyRatio: 0.48, chainLength: 6, averageBranching: 2.2,
-    scanDistance: "5-8", isolatedCells: 4, addRowDifficulty: 7, targetSolveTime: 150,
-    expectedAddRow: 4.0, difficultyScore: 7, seed: 1000121
+    matchDensity: 0.44, frictionFactor: 0.58, trueDecoyRatio: 0.46,
+    minGap: 7,  maxGap: 16,
+    chainLength: 6, averageBranching: 2.2,
+    scanDistance: "7-16", isolatedCells: 4,
+    addRowDifficulty: 7, targetSolveTime: 150,
+    expectedAddRow: 4.0, difficultyScore: 7,
+    seed: 1000121,
+    decoyRatio: 0.48
   },
-  // Level 9: Very Hard, target 180s, 4-5 adds
   {
-    matchDensity: 0.38, decoyRatio: 0.58, chainLength: 7, averageBranching: 2.4,
-    scanDistance: "6-9", isolatedCells: 5, addRowDifficulty: 8, targetSolveTime: 180,
-    expectedAddRow: 4.5, difficultyScore: 8, seed: 1000133
+    matchDensity: 0.40, frictionFactor: 0.68, trueDecoyRatio: 0.54,
+    minGap: 8,  maxGap: 18,
+    chainLength: 7, averageBranching: 2.4,
+    scanDistance: "8-18", isolatedCells: 5,
+    addRowDifficulty: 8, targetSolveTime: 180,
+    expectedAddRow: 4.5, difficultyScore: 8,
+    seed: 1000133,
+    decoyRatio: 0.58
   },
-  // Level 10: Peak, target 210s, 5-6 adds
   {
-    matchDensity: 0.35, decoyRatio: 0.68, chainLength: 8, averageBranching: 2.6,
-    scanDistance: "large", isolatedCells: 6, addRowDifficulty: 10, targetSolveTime: 210,
-    expectedAddRow: 5.5, difficultyScore: 10, seed: 1000151
+    matchDensity: 0.35, frictionFactor: 0.78, trueDecoyRatio: 0.63,
+    minGap: 9,  maxGap: 22,
+    chainLength: 8, averageBranching: 2.6,
+    scanDistance: "9-22", isolatedCells: 6,
+    addRowDifficulty: 10, targetSolveTime: 210,
+    expectedAddRow: 5.5, difficultyScore: 10,
+    seed: 1000151,
+    decoyRatio: 0.68
   },
-  // Level 11: Relief (Medium), target 90s, 2-4 adds
   {
-    matchDensity: 0.60, decoyRatio: 0.18, chainLength: 4, averageBranching: 1.8,
-    scanDistance: "3-5", isolatedCells: 2, addRowDifficulty: 3, targetSolveTime: 90,
-    expectedAddRow: 3.0, difficultyScore: 3, seed: 1000159
+    matchDensity: 0.70, frictionFactor: 0.25, trueDecoyRatio: 0.15,
+    minGap: 3,  maxGap: 6,
+    chainLength: 4, averageBranching: 1.8,
+    scanDistance: "3-6", isolatedCells: 2,
+    addRowDifficulty: 3, targetSolveTime: 90,
+    expectedAddRow: 3.0, difficultyScore: 3,
+    seed: 1000159,
+    decoyRatio: 0.18
   }
 ];
 

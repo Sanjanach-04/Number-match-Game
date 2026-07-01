@@ -6,40 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * AddRowEngine - Part B: Smart "Add Row" Logic
- *
- * ═══════════════════════════════════════════════════════════════
- * ALGORITHM:
- *
- * When the player hits (+) Add Row, we don't just dump random numbers.
- * We analyze the board state and inject numbers strategically:
- *
- * STEP 1 — STRAGGLER PRIORITY
- *   Find all "straggler" cells (rows with only 1 active cell left).
- *   For each straggler, generate its complement (same value OR 10-complement).
- *   These are injected first in the new row to help the player clear orphan rows.
- *
- * STEP 2 — RESCUE DETECTION
- *   Track: how many Add Row presses happened since the last successful match.
- *   If ≥ 2 Add Row presses with 0 matches in between → RESCUE MODE.
- *   In Rescue Mode: the new row is forced to contain at least 2 immediately
- *   matchable pairs (adjacent cells with matching values).
- *
- * STEP 3 — FRICTION INJECTION (based on level)
- *   After placing helpers and stragglers, fill remaining slots with:
- *   - "Soft helpers": values that match something on the board but not immediately adjacent
- *   - "Decoys": values that match nothing currently on the board
- *   The mix ratio is controlled by decoyRatio from DifficultyConfig.
- *
- * STEP 4 — LAYOUT STRATEGY
- *   The 9 slots in the new row are arranged as:
- *   [STRAGGLER HELPERS | RESCUE PAIRS | SOFT HELPERS | DECOYS]
- *   Then the non-critical portion is shuffled to prevent predictability.
- *
- * RESCUE TRIGGER:
- *   addRowPressesWithoutMatch >= 2 → inject at least 2 adjacent matching pairs
- *   After injection, rescueMode resets.
- * ═══════════════════════════════════════════════════════════════
+ * AddRowEngine - Part B: Smart "Add Row" Logic (v3 Sync)
  */
 public class AddRowEngine {
 
@@ -57,14 +24,9 @@ public class AddRowEngine {
 
     public AddRowEngine(DifficultyConfig config) {
         this.config = config;
-        // Add Row seed is offset from board seed to avoid overlap
         this.currentSeed = config.seed + 99991L;
         this.rng = new SeededRandom(currentSeed);
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // Public API
-    // ─────────────────────────────────────────────────────────────
 
     /**
      * Called when the player pressed (+) Add Row.
@@ -73,7 +35,6 @@ public class AddRowEngine {
     public int[] generateNextRow(Board board) {
         if (totalAddRowUses >= MAX_ADD_ROW_USES) return null;
 
-        // Advance seed for this press (deterministic per press number)
         currentSeed += 31337L * (totalAddRowUses + 1);
         rng = new SeededRandom(currentSeed);
 
@@ -86,17 +47,32 @@ public class AddRowEngine {
             row = buildRescueRow(board);
             addRowPressesWithoutMatch = 0; // Reset after rescue
         } else {
-            row = buildSmartRow(board);
+            boolean success = false;
+            row = null;
+            for (int attempt = 0; attempt < 20; attempt++) {
+                long attemptSeed = currentSeed + (long) attempt * 7919L;
+                SeededRandom attemptRng = new SeededRandom(attemptSeed);
+                row = buildSmartRow(board, attemptRng);
+
+                Board testBoard = copyBoard(board);
+                testBoard.addRow(row);
+
+                if (isSolvable(testBoard)) {
+                    success = true;
+                    rng = attemptRng;
+                    break;
+                }
+            }
+            if (!success) {
+                row = buildRescueRow(board);
+                addRowPressesWithoutMatch = 0;
+            }
         }
 
-        addRowPressesWithoutMatch++; // Will reset if player makes a match (see notifyMatchMade)
+        addRowPressesWithoutMatch++;
         return row;
     }
 
-    /**
-     * Must be called whenever the player successfully matches two cells.
-     * Resets the frustration counter.
-     */
     public void notifyMatchMade() {
         addRowPressesWithoutMatch = 0;
     }
@@ -117,180 +93,207 @@ public class AddRowEngine {
     // Row builders
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * RESCUE ROW: Forces at least 2 immediately matchable adjacent pairs.
-     * Used when player is stuck (2+ Add Row presses with no matches).
-     */
     private int[] buildRescueRow(Board board) {
         int[] row = new int[Board.COLS];
-        int pos = 0;
 
-        // ── Place 2 guaranteed adjacent pairs ────────────────────
-        // Pick pairs from current board's active values so they match existing numbers
         int[] activeValues = board.getActiveValues();
-        List<Integer> pairValues = findPairableValues(activeValues, 2);
-
-        for (int v : pairValues) {
-            if (pos + 1 < Board.COLS) {
-                int complement = getComplement(v);
-                row[pos++] = v;
-                row[pos++] = complement;
-            }
+        if (activeValues.length == 0) {
+            activeValues = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
         }
 
-        // ── Fill rest with soft helpers (some matches, fewer decoys) ─
-        while (pos < Board.COLS) {
-            if (rng.nextBoolean(0.70f)) {
-                // Helper: pairs with something on the board
-                row[pos++] = pickHelperValue(board.getActiveValues());
-            } else {
-                row[pos++] = rng.nextIntRange(1, 9);
+        int v = activeValues[rng.nextInt(activeValues.length)];
+        int w = v;
+        int attempts = 0;
+        while (w == v && attempts < 20) {
+            int potentialW = activeValues[rng.nextInt(activeValues.length)];
+            if (potentialW != v) {
+                w = potentialW;
+                break;
             }
+            attempts++;
         }
 
-        // Shuffle only positions 4..8 (keep the two rescue pairs at front)
-        shuffleSlice(row, 4, Board.COLS - 1, rng);
+        row[0] = v;
+        row[1] = v;
+        row[2] = w;
+        row[3] = w;
+
+        // Fill remaining cells 4-8 with helpers (no pure decoys)
+        // 4 & 5 form a sum-to-10 or same-value pair
+        int pVal = activeValues[rng.nextInt(activeValues.length)];
+        row[4] = pVal;
+        row[5] = getComplement(pVal);
+
+        // 6 & 7 form another pair
+        int pVal2 = activeValues[rng.nextInt(activeValues.length)];
+        row[6] = pVal2;
+        row[7] = getComplement(pVal2);
+
+        // 8 is complement of another active cell
+        int pVal3 = activeValues[rng.nextInt(activeValues.length)];
+        row[8] = getComplement(pVal3);
+
         return row;
     }
 
-    /**
-     * SMART ROW: Normal Add Row with difficulty-appropriate helper/decoy mix.
-     */
-    private int[] buildSmartRow(Board board) {
-        int[] row = new int[Board.COLS];
-        int pos = 0;
-
-        // ── STEP 1: Straggler helpers ─────────────────────────────
+    private int[] buildSmartRow(Board board, SeededRandom activeRng) {
         List<Cell> stragglers = board.getStragglerCells();
-        // Limit straggler fills based on level (easy levels help more)
-        int maxStragglerHelpers = Math.max(1, (int) (3 * (1.0f - config.frictionFactor)));
-
-        for (int i = 0; i < Math.min(stragglers.size(), maxStragglerHelpers) && pos < Board.COLS; i++) {
-            Cell straggler = stragglers.get(i);
-            // Inject the complement of the straggler's value
-            row[pos++] = getComplement(straggler.value);
-        }
-
-        // ── STEP 2: General helpers ───────────────────────────────
-        float helperRatio = 1.0f - config.decoyRatio;
-        int helperTarget = (int) Math.floor(Board.COLS * helperRatio);
         int[] activeValues = board.getActiveValues();
 
-        while (pos < helperTarget && pos < Board.COLS) {
-            row[pos++] = pickHelperValue(activeValues);
+        int diff = 3;
+        switch (config.level) {
+            case 1: diff = 1; break;
+            case 2: diff = 2; break;
+            case 3: diff = 3; break;
+            case 4: diff = 4; break;
+            case 5: diff = 6; break;
+            case 6: diff = 3; break;
+            case 7: diff = 6; break;
+            case 8: diff = 7; break;
+            case 9: diff = 8; break;
+            case 10: diff = 10; break;
+            case 11: diff = 3; break;
         }
 
-        // ── STEP 3: Fill remaining with decoys ────────────────────
-        while (pos < Board.COLS) {
-            row[pos++] = pickDecoyValue(activeValues, rng);
+        Map<Integer, Integer> activeFreq = new HashMap<>();
+        for (int v : activeValues) {
+            activeFreq.put(v, activeFreq.getOrDefault(v, 0) + 1);
         }
 
-        // ── STEP 4: Shuffle positions 2..8 (keep first straggler helper) ─
-        int shuffleStart = Math.min(stragglers.isEmpty() ? 0 : 1, Board.COLS - 1);
-        shuffleSlice(row, shuffleStart, Board.COLS - 1, rng);
+        List<Integer> rowList = new ArrayList<>();
+        int stragglerSlotsFilled = 0;
+
+        // TIER 1: Straggler complements (each straggler gets 1 cell)
+        for (Cell straggler : stragglers) {
+            if (rowList.size() >= Board.COLS) break;
+            rowList.add(getComplement(straggler.value));
+            stragglerSlotsFilled++;
+        }
+
+        int slots = Board.COLS - rowList.size();
+        int helperSlots = (int) Math.ceil(slots * (1.0f - config.trueDecoyRatio));
+        int decoySlots = slots - helperSlots;
+
+        // TIER 2: Helper Fill
+        List<Integer> activeVals = new ArrayList<>();
+        for (int v = 1; v <= 9; v++) {
+            if (activeFreq.containsKey(v)) {
+                activeVals.add(v);
+            }
+        }
+        if (activeVals.isEmpty()) {
+            for (int i = 1; i <= 5; i++) activeVals.add(i);
+        }
+
+        for (int h = 0; h < helperSlots; h++) {
+            int val = activeVals.get(activeRng.nextInt(activeVals.size()));
+            rowList.add(getComplement(val));
+        }
+
+        // TIER 3: Decoy Fill (true decoys: no partners on the board)
+        List<Integer> trueDecoys = new ArrayList<>();
+        for (int d = 1; d <= 9; d++) {
+            int partner = getComplement(d);
+            if (!activeFreq.containsKey(d) && !activeFreq.containsKey(partner)) {
+                trueDecoys.add(d);
+            }
+        }
+        if (trueDecoys.isEmpty()) {
+            for (int d = 1; d <= 9; d++) {
+                if (!activeFreq.containsKey(d)) {
+                    trueDecoys.add(d);
+                }
+            }
+        }
+        if (trueDecoys.isEmpty()) {
+            for (int i = 1; i <= 9; i++) trueDecoys.add(i);
+        }
+
+        for (int d = 0; d < decoySlots; d++) {
+            rowList.add(trueDecoys.get(activeRng.nextInt(trueDecoys.size())));
+        }
+
+        int[] row = new int[Board.COLS];
+        for (int i = 0; i < Board.COLS; i++) {
+            row[i] = rowList.get(i);
+        }
+
+        // POSITIONING / SHUFFLING:
+        if (diff == 1) {
+            shuffleSlice(row, stragglerSlotsFilled, Board.COLS - 1, activeRng);
+            for (int i = stragglerSlotsFilled; i < Board.COLS - 1; i += 2) {
+                row[i + 1] = getComplement(row[i]);
+            }
+        } else if (diff == 2) {
+            shuffleSlice(row, stragglerSlotsFilled, Board.COLS - 1, activeRng);
+            for (int i = stragglerSlotsFilled; i < Board.COLS - 2; i += 3) {
+                row[i + 1] = getComplement(row[i]);
+            }
+        } else if (diff <= 6) {
+            shuffleSlice(row, stragglerSlotsFilled, Board.COLS - 1, activeRng);
+        } else {
+            shuffleSlice(row, 0, Board.COLS - 1, activeRng);
+        }
+
         return row;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Value selection helpers
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Returns the "best" complement for a value:
-     * - Prefers same-value match at low difficulty
-     * - Prefers sum-to-10 at high difficulty (harder to spot)
-     */
     private int getComplement(int value) {
-        // At high friction, prefer sum-to-10 complement
         if (config.frictionFactor > 0.5f && value != 5) {
             int sumComplement = 10 - value;
             if (sumComplement >= 1 && sumComplement <= 9) {
                 return sumComplement;
             }
         }
-        return value; // same-value match (easier to see)
-    }
-
-    /**
-     * Picks a value that pairs with something currently on the board.
-     */
-    private int pickHelperValue(int[] activeValues) {
-        if (activeValues.length == 0) return rng.nextIntRange(1, 9);
-
-        // Pick a random active value and return its complement
-        int target = activeValues[rng.nextInt(activeValues.length)];
-        return getComplement(target);
-    }
-
-    /**
-     * Picks a value that has NO match with any currently active board value.
-     * Falls back to a random value if no true decoy found after 10 tries.
-     */
-    private int pickDecoyValue(int[] activeValues, SeededRandom rng) {
-        for (int attempt = 0; attempt < 10; attempt++) {
-            int candidate = rng.nextIntRange(1, 9);
-            if (!hasPairInArray(candidate, activeValues)) return candidate;
-        }
-        return rng.nextIntRange(1, 9);
-    }
-
-    private boolean hasPairInArray(int value, int[] arr) {
-        for (int v : arr) {
-            if (v == value || v + value == 10) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Finds values from the active board that can be paired with their complements.
-     * Returns up to `maxCount` values.
-     */
-    private List<Integer> findPairableValues(int[] activeValues, int maxCount) {
-        List<Integer> result = new ArrayList<>();
-        if (activeValues.length == 0) {
-            // No active values: default to (1,1) and (2,8) pairs
-            result.add(1);
-            result.add(2);
-            return result;
-        }
-
-        // Count each value's frequency on the board
-        Map<Integer, Integer> freq = new HashMap<>();
-        for (int v : activeValues) {
-            freq.put(v, freq.getOrDefault(v, 0) + 1);
-        }
-
-        // Prefer values that appear multiple times (same-value match easier)
-        for (Map.Entry<Integer, Integer> entry : freq.entrySet()) {
-            if (entry.getValue() >= 2 && result.size() < maxCount) {
-                result.add(entry.getKey());
-            }
-        }
-
-        // If not enough, add sum-to-10 pairs
-        for (int v : activeValues) {
-            if (result.size() >= maxCount) break;
-            int complement = 10 - v;
-            if (complement >= 1 && complement <= 9 && complement != v) {
-                if (!result.contains(v)) result.add(v);
-            }
-        }
-
-        // Pad with random pairables if needed
-        while (result.size() < maxCount) {
-            result.add(rng.nextIntRange(1, 9));
-        }
-
-        return result;
+        return value;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Utility
+    // Solvability simulation for Android
     // ─────────────────────────────────────────────────────────────
 
-    private void shuffleSlice(int[] arr, int from, int to, SeededRandom rng) {
+    private static boolean isSolvable(Board board) {
+        Board simBoard = copyBoard(board);
+        int maxPasses = simBoard.activeCount() + 10;
+
+        for (int pass = 0; pass < maxPasses; pass++) {
+            List<int[]> matches = simBoard.findAllValidMatches();
+            if (matches.isEmpty()) break;
+            int[] match = matches.get(0);
+            Cell a = simBoard.getCellByIndex(match[0]);
+            Cell b = simBoard.getCellByIndex(match[1]);
+            simBoard.tryMatch(a, b);
+        }
+
+        return simBoard.isCleared();
+    }
+
+    private static Board copyBoard(Board original) {
+        Board copy = new Board();
+        int rows = original.getRowCount();
+        for (int r = 0; r < rows; r++) {
+            int[] row = new int[Board.COLS];
+            for (int c = 0; c < Board.COLS; c++) {
+                Cell cell = original.getCell(r, c);
+                row[c] = (cell != null) ? cell.value : 1;
+            }
+            copy.addRow(row);
+        }
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < Board.COLS; c++) {
+                Cell orig = original.getCell(r, c);
+                Cell dupe = copy.getCell(r, c);
+                if (orig != null && orig.isMatched() && dupe != null) {
+                    dupe.markMatched();
+                }
+            }
+        }
+        return copy;
+    }
+
+    private void shuffleSlice(int[] arr, int from, int to, SeededRandom activeRng) {
         for (int i = to; i > from; i--) {
-            int j = from + rng.nextInt(i - from + 1);
+            int j = from + activeRng.nextInt(i - from + 1);
             int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
         }
     }

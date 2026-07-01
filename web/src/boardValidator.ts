@@ -23,7 +23,7 @@ function validateBoard(board: Cell[]): { valid: boolean; reason: string } {
   return { valid: true, reason: 'OK' };
 }
 
-var MAX_BOARD_ATTEMPTS = 20;
+var MAX_BOARD_ATTEMPTS = 10;
 
 function getBoardWithValidation(lvlIndex: number): Cell[] {
   if (lvlIndex === 0) {

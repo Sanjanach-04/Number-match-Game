@@ -17,7 +17,7 @@ function validateBoard(board) {
     }
     return { valid: true, reason: 'OK' };
 }
-var MAX_BOARD_ATTEMPTS = 20;
+var MAX_BOARD_ATTEMPTS = 10;
 function getBoardWithValidation(lvlIndex) {
     if (lvlIndex === 0) {
         return generateLevel1Board();

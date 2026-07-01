@@ -98,9 +98,32 @@ public class Board {
             return noActivesInColumn(rowA, rowB, colA);
         }
 
+        // ── Diagonal: 45 degree slope ─────────────────────────
+        int dr = rowB - rowA;
+        int dc = colB - colA;
+        if (Math.abs(dr) == Math.abs(dc) && dr != 0) {
+            if (noActivesInDiagonal(rowA, colA, rowB, colB)) return true;
+        }
+
         // ── Wrap-around: end of row r → start of row r+1 ──────
         // idxA is last active in its row-group, idxB is first active in next
         return noActivesBetweenLinear(idxA, idxB);
+    }
+
+    private boolean noActivesInDiagonal(int rowA, int colA, int rowB, int colB) {
+        int dr = rowB - rowA;
+        int dc = colB - colA;
+        int sr = dr > 0 ? 1 : -1;
+        int sc = dc > 0 ? 1 : -1;
+        int r = rowA + sr;
+        int c = colA + sc;
+        while (r != rowB || c != colB) {
+            Cell cell = getCell(r, c);
+            if (cell != null && cell.isActive()) return false;
+            r += sr;
+            c += sc;
+        }
+        return true;
     }
 
     /**

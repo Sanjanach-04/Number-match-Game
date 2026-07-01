@@ -25,8 +25,14 @@ public class DifficultyConfig {
     public final int initialRows;     // Always 3 per spec, kept for reference
     public final int maxAddRowUses;   // Always 6 per spec
 
+    // New difficulty curve params (v3 sync)
+    public final int minGap;
+    public final int maxGap;
+    public final float trueDecoyRatio;
+
     public DifficultyConfig(int level, long seed, float matchDensity, float decoyRatio,
-                            float frictionFactor, int idealAddRowUses, int targetTimeSeconds) {
+                            float frictionFactor, int idealAddRowUses, int targetTimeSeconds,
+                            int minGap, int maxGap, float trueDecoyRatio) {
         this.level = level;
         this.seed = seed;
         this.matchDensity = matchDensity;
@@ -36,42 +42,29 @@ public class DifficultyConfig {
         this.targetTimeSeconds = targetTimeSeconds;
         this.initialRows = 3;
         this.maxAddRowUses = 6;
+        this.minGap = minGap;
+        this.maxGap = maxGap;
+        this.trueDecoyRatio = trueDecoyRatio;
     }
 
     /**
-     * SAWTOOTH CURVE TABLE
-     *
-     * Level | Target Time | Match Density | Decoy Ratio | Ideal AddRow | Experience
-     * ------|-------------|---------------|-------------|--------------|------------
-     *   1   |   45s       |   0.80        |   0.10      |     1        | Easy / instant gratification
-     *   2   |   60s       |   0.72        |   0.20      |     1-2      | Slightly harder
-     *   3   |   90s       |   0.65        |   0.30      |     2-3      | Normal, requires scanning
-     *   4   |   120s      |   0.58        |   0.38      |     2-3      | Moderately hard
-     *   5   |   150s      |   0.50        |   0.50      |     2-3      | Hard, buried matches
-     *   6   |   90s       |   0.65        |   0.30      |     2-4      | RELIEF - back to L3 feel
-     *   7   |   120s      |   0.55        |   0.45      |     3-4      | Harder ramp
-     *   8   |   150s      |   0.48        |   0.55      |     3-5      | Very hard
-     *   9   |   180s      |   0.42        |   0.62      |     4-5      | Intense
-     *  10   |   210s      |   0.38        |   0.68      |     4-6      | Peak difficulty
-     *  11   |   90s       |   0.65        |   0.30      |     2-4      | RELIEF - drops again
+     * SAWTOOTH CURVE TABLE (Sync with JS)
      */
     public static DifficultyConfig forLevel(int level) {
-        // Seeds are fixed prime-based values to ensure determinism per level
         switch (level) {
-            case 1:  return new DifficultyConfig(1,  1000003L, 0.80f, 0.10f, 0.10f, 1,  45);
-            case 2:  return new DifficultyConfig(2,  1000033L, 0.72f, 0.20f, 0.25f, 2,  60);
-            case 3:  return new DifficultyConfig(3,  1000037L, 0.65f, 0.30f, 0.35f, 2,  90);
-            case 4:  return new DifficultyConfig(4,  1000039L, 0.58f, 0.38f, 0.45f, 3, 120);
-            case 5:  return new DifficultyConfig(5,  1000081L, 0.50f, 0.50f, 0.55f, 3, 150);
-            case 6:  return new DifficultyConfig(6,  1000099L, 0.65f, 0.30f, 0.35f, 3,  90); // RELIEF
-            case 7:  return new DifficultyConfig(7,  1000117L, 0.55f, 0.45f, 0.50f, 4, 120);
-            case 8:  return new DifficultyConfig(8,  1000121L, 0.48f, 0.55f, 0.62f, 4, 150);
-            case 9:  return new DifficultyConfig(9,  1000133L, 0.42f, 0.62f, 0.72f, 5, 180);
-            case 10: return new DifficultyConfig(10, 1000151L, 0.38f, 0.68f, 0.82f, 5, 210);
-            case 11: return new DifficultyConfig(11, 1000159L, 0.65f, 0.30f, 0.35f, 3,  90); // RELIEF
+            case 1:  return new DifficultyConfig(1,  1000003L, 0.90f, 0.00f, 0.00f, 1,  45,  1, 3,  0.00f);
+            case 2:  return new DifficultyConfig(2,  1000033L, 0.82f, 0.08f, 0.10f, 2,  60,  2, 4,  0.05f);
+            case 3:  return new DifficultyConfig(3,  1000037L, 0.70f, 0.18f, 0.25f, 2,  90,  3, 6,  0.15f);
+            case 4:  return new DifficultyConfig(4,  1000039L, 0.60f, 0.28f, 0.38f, 3, 120,  4, 9,  0.25f);
+            case 5:  return new DifficultyConfig(5,  1000081L, 0.48f, 0.42f, 0.50f, 3, 150,  6, 14, 0.40f);
+            case 6:  return new DifficultyConfig(6,  1000099L, 0.70f, 0.18f, 0.25f, 3,  90,  3, 6,  0.15f); // RELIEF
+            case 7:  return new DifficultyConfig(7,  1000117L, 0.54f, 0.36f, 0.45f, 4, 120,  5, 12, 0.35f);
+            case 8:  return new DifficultyConfig(8,  1000121L, 0.44f, 0.48f, 0.58f, 4, 150,  7, 16, 0.46f);
+            case 9:  return new DifficultyConfig(9,  1000133L, 0.40f, 0.58f, 0.68f, 5, 180,  8, 18, 0.54f);
+            case 10: return new DifficultyConfig(10, 1000151L, 0.35f, 0.68f, 0.78f, 5, 210,  9, 22, 0.63f);
+            case 11: return new DifficultyConfig(11, 1000159L, 0.70f, 0.18f, 0.25f, 3,  90,  3, 6,  0.15f); // RELIEF
             default:
-                // For levels beyond 11: continue sawtooth, cap at L10 difficulty
-                int cycle = ((level - 1) % 5) + 1; // repeat 5-level cycles
+                int cycle = ((level - 1) % 5) + 1;
                 return forLevel(cycle <= 3 ? 10 : 6);
         }
     }
