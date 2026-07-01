@@ -18,5 +18,14 @@ android/.gradle/
 # OS
 .DS_Store
 Thumbs.db
-.vercel
 .env*
+.vercel
+
+# Understand Anything
+.understand-anything/intermediate/
+.understand-anything/diff-overlay.json
+.understand-anything/.trash*
+Understand-Anything/
+package-lock.json
+
+

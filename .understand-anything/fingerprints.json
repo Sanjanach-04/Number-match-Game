@@ -1,0 +1,3715 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "38d588267c5b9b94addcfe029bee23d96cbc70d7",
+  "generatedAt": "2026-07-01T11:32:35.327Z",
+  "files": {
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "857ddede562f393cf06ccb7b74489028fec028507e18d3b5a5837afb81af8077",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": false
+    },
+    "ALGORITHM.md": {
+      "filePath": "ALGORITHM.md",
+      "contentHash": "7f8141307d9330c6214618a5af492e129bcf47bac6bdf0fa737e92be2782707a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 85,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/build.gradle": {
+      "filePath": "android/app/build.gradle",
+      "contentHash": "31201a3ddd5ca631c488e918346994d848f949941ed571831a49e4cecc2f4c9e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/proguard-rules.pro": {
+      "filePath": "android/app/proguard-rules.pro",
+      "contentHash": "b8131e041f121f6918d0d7fe0f50ac41b448ab5df4d5fce08cb75d8b3ace2f08",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/AndroidManifest.xml": {
+      "filePath": "android/app/src/main/AndroidManifest.xml",
+      "contentHash": "953fffb6ec5b72e1aebbda57e34e7cb26eff470a4640260f7a4a6ef10e73abf5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/AddRowEngine.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/AddRowEngine.java",
+      "contentHash": "491f9e9e039020a9e24530cfd6b158457931e53969d62521aac3aa9521956b0d",
+      "functions": [
+        {
+          "name": "AddRowEngine",
+          "params": [
+            "config"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "generateNextRow",
+          "params": [
+            "board"
+          ],
+          "returnType": "int[]",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "notifyMatchMade",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getRemainingUses",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "isExhausted",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "isInRescueMode",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "planNextRow",
+          "params": [
+            "board",
+            "activeRng"
+          ],
+          "returnType": "int[]",
+          "exported": false,
+          "lineCount": 91
+        },
+        {
+          "name": "getCompVal",
+          "params": [
+            "val"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "toIntArray",
+          "params": [
+            "list"
+          ],
+          "returnType": "int[]",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "shuffleList",
+          "params": [
+            "list",
+            "activeRng"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "isSolvable",
+          "params": [
+            "board"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "copyBoard",
+          "params": [
+            "original"
+          ],
+          "returnType": "Board",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "shuffleSlice",
+          "params": [
+            "arr",
+            "from",
+            "to",
+            "activeRng"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [
+        {
+          "name": "AddRowEngine",
+          "methods": [
+            "AddRowEngine",
+            "generateNextRow",
+            "notifyMatchMade",
+            "getRemainingUses",
+            "isExhausted",
+            "isInRescueMode",
+            "planNextRow",
+            "getCompVal",
+            "toIntArray",
+            "shuffleList",
+            "isSolvable",
+            "copyBoard",
+            "shuffleSlice"
+          ],
+          "properties": [
+            "MAX_ADD_ROW_USES",
+            "config",
+            "rng",
+            "addRowPressesWithoutMatch",
+            "totalAddRowUses",
+            "currentSeed"
+          ],
+          "exported": true,
+          "lineCount": 227
+        }
+      ],
+      "imports": [
+        {
+          "source": "java.util.ArrayList",
+          "specifiers": [
+            "ArrayList"
+          ]
+        },
+        {
+          "source": "java.util.HashMap",
+          "specifiers": [
+            "HashMap"
+          ]
+        },
+        {
+          "source": "java.util.List",
+          "specifiers": [
+            "List"
+          ]
+        },
+        {
+          "source": "java.util.Map",
+          "specifiers": [
+            "Map"
+          ]
+        }
+      ],
+      "exports": [
+        "MAX_ADD_ROW_USES",
+        "AddRowEngine",
+        "generateNextRow",
+        "notifyMatchMade",
+        "getRemainingUses",
+        "isExhausted",
+        "isInRescueMode",
+        "AddRowEngine"
+      ],
+      "totalLines": 238,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/Board.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/Board.java",
+      "contentHash": "e4ad02b4caa78cbcd25477dc27625be4e19159a3a982c55d0acc97143dc125f4",
+      "functions": [
+        {
+          "name": "Board",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "addRow",
+          "params": [
+            "values"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "getRowCount",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getTotalCells",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getCell",
+          "params": [
+            "row",
+            "col"
+          ],
+          "returnType": "Cell",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getCellByIndex",
+          "params": [
+            "index"
+          ],
+          "returnType": "Cell",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "indexOfCell",
+          "params": [
+            "cell"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getCellCount",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "isValidMatch",
+          "params": [
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 39
+        },
+        {
+          "name": "noActivesInDiagonal",
+          "params": [
+            "rowA",
+            "colA",
+            "rowB",
+            "colB"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "noActivesBetweenLinear",
+          "params": [
+            "lo",
+            "hi"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "noActivesInColumn",
+          "params": [
+            "rowA",
+            "rowB",
+            "col"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "tryMatch",
+          "params": [
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "isCleared",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "activeCount",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getActiveCells",
+          "params": [],
+          "returnType": "List<Cell>",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "findAllValidMatches",
+          "params": [],
+          "returnType": "List<int[]>",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "hasAnyValidMatch",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getStragglerCells",
+          "params": [],
+          "returnType": "List<Cell>",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "getActiveValues",
+          "params": [],
+          "returnType": "int[]",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "toString",
+          "params": [],
+          "returnType": "String",
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [
+        {
+          "name": "Board",
+          "methods": [
+            "Board",
+            "addRow",
+            "getRowCount",
+            "getTotalCells",
+            "getCell",
+            "getCellByIndex",
+            "indexOfCell",
+            "getCellCount",
+            "isValidMatch",
+            "noActivesInDiagonal",
+            "noActivesBetweenLinear",
+            "noActivesInColumn",
+            "tryMatch",
+            "isCleared",
+            "activeCount",
+            "getActiveCells",
+            "findAllValidMatches",
+            "hasAnyValidMatch",
+            "getStragglerCells",
+            "getActiveValues",
+            "toString"
+          ],
+          "properties": [
+            "COLS",
+            "cells",
+            "rowCount"
+          ],
+          "exported": true,
+          "lineCount": 254
+        }
+      ],
+      "imports": [
+        {
+          "source": "java.util.ArrayList",
+          "specifiers": [
+            "ArrayList"
+          ]
+        },
+        {
+          "source": "java.util.List",
+          "specifiers": [
+            "List"
+          ]
+        }
+      ],
+      "exports": [
+        "COLS",
+        "Board",
+        "addRow",
+        "getRowCount",
+        "getTotalCells",
+        "getCell",
+        "getCellByIndex",
+        "indexOfCell",
+        "getCellCount",
+        "isValidMatch",
+        "tryMatch",
+        "isCleared",
+        "activeCount",
+        "getActiveCells",
+        "findAllValidMatches",
+        "hasAnyValidMatch",
+        "getStragglerCells",
+        "getActiveValues",
+        "toString",
+        "Board"
+      ],
+      "totalLines": 272,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/BoardSeeder.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/BoardSeeder.java",
+      "contentHash": "1c1e435e44fd3b18c44c707b2fcd886e84767fd4c0849c54b6d684c13f0a8905",
+      "functions": [
+        {
+          "name": "comp",
+          "params": [
+            "v"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "generateBoard",
+          "params": [
+            "level"
+          ],
+          "returnType": "Board",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "buildBoard",
+          "params": [
+            "config",
+            "rng"
+          ],
+          "returnType": "Board",
+          "exported": false,
+          "lineCount": 86
+        },
+        {
+          "name": "pickTrueDecoy",
+          "params": [
+            "pairVals",
+            "rng"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "shuffleList",
+          "params": [
+            "list",
+            "rng"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "isSolvable",
+          "params": [
+            "board"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "copyBoard",
+          "params": [
+            "original"
+          ],
+          "returnType": "Board",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "buildHandCraftedLevel1Board",
+          "params": [],
+          "returnType": "Board",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "buildTrivialBoard",
+          "params": [
+            "config"
+          ],
+          "returnType": "Board",
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "BoardSeeder",
+          "methods": [
+            "comp",
+            "generateBoard",
+            "buildBoard",
+            "pickTrueDecoy",
+            "shuffleList",
+            "isSolvable",
+            "copyBoard",
+            "buildHandCraftedLevel1Board",
+            "buildTrivialBoard"
+          ],
+          "properties": [
+            "COLS",
+            "INITIAL_ROWS",
+            "TOTAL_CELLS",
+            "SAME_VAL_PAIRS",
+            "SUM_TEN_PAIRS"
+          ],
+          "exported": true,
+          "lineCount": 227
+        }
+      ],
+      "imports": [
+        {
+          "source": "java.util.ArrayList",
+          "specifiers": [
+            "ArrayList"
+          ]
+        },
+        {
+          "source": "java.util.Collections",
+          "specifiers": [
+            "Collections"
+          ]
+        },
+        {
+          "source": "java.util.List",
+          "specifiers": [
+            "List"
+          ]
+        }
+      ],
+      "exports": [
+        "generateBoard",
+        "BoardSeeder"
+      ],
+      "totalLines": 237,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/Cell.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/Cell.java",
+      "contentHash": "c85dc950b1398e70ce02e89a0125350b6e02baac8d4452ca05162be8cf41af63",
+      "functions": [
+        {
+          "name": "Cell",
+          "params": [
+            "value",
+            "row",
+            "col"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "isActive",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "isMatched",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "markMatched",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "canMatch",
+          "params": [
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "toString",
+          "params": [],
+          "returnType": "String",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "Cell",
+          "methods": [
+            "Cell",
+            "isActive",
+            "isMatched",
+            "markMatched",
+            "canMatch",
+            "toString"
+          ],
+          "properties": [
+            "STATE_ACTIVE",
+            "STATE_MATCHED",
+            "STATE_EMPTY",
+            "value",
+            "state",
+            "row",
+            "col"
+          ],
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "STATE_ACTIVE",
+        "STATE_MATCHED",
+        "STATE_EMPTY",
+        "value",
+        "state",
+        "row",
+        "col",
+        "Cell",
+        "isActive",
+        "isMatched",
+        "markMatched",
+        "canMatch",
+        "toString",
+        "Cell"
+      ],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/DifficultyConfig.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/DifficultyConfig.java",
+      "contentHash": "d11fae9d4bf90b02cd43977a9529ca38be92ac4353c14e34b3a78751da4b07eb",
+      "functions": [
+        {
+          "name": "DifficultyConfig",
+          "params": [
+            "level",
+            "seed",
+            "matchDensity",
+            "decoyRatio",
+            "frictionFactor",
+            "idealAddRowUses",
+            "targetTimeSeconds",
+            "minGap",
+            "maxGap",
+            "trueDecoyRatio"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "forLevel",
+          "params": [
+            "level"
+          ],
+          "returnType": "DifficultyConfig",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [
+        {
+          "name": "DifficultyConfig",
+          "methods": [
+            "DifficultyConfig",
+            "forLevel"
+          ],
+          "properties": [
+            "level",
+            "seed",
+            "matchDensity",
+            "decoyRatio",
+            "frictionFactor",
+            "idealAddRowUses",
+            "targetTimeSeconds",
+            "initialRows",
+            "maxAddRowUses",
+            "minGap",
+            "maxGap",
+            "trueDecoyRatio"
+          ],
+          "exported": true,
+          "lineCount": 56
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "level",
+        "seed",
+        "matchDensity",
+        "decoyRatio",
+        "frictionFactor",
+        "idealAddRowUses",
+        "targetTimeSeconds",
+        "initialRows",
+        "maxAddRowUses",
+        "minGap",
+        "maxGap",
+        "trueDecoyRatio",
+        "DifficultyConfig",
+        "forLevel",
+        "DifficultyConfig"
+      ],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/GameEngine.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/GameEngine.java",
+      "contentHash": "42205cb41fbb0e263136ad2c6bff33c799e88579d425aa421bfe71209ad1ecd2",
+      "functions": [
+        {
+          "name": "GameEngine",
+          "params": [
+            "level"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "setListener",
+          "params": [
+            "listener"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "onCellTapped",
+          "params": [
+            "cellIndex"
+          ],
+          "returnType": "MatchResult",
+          "exported": true,
+          "lineCount": 39
+        },
+        {
+          "name": "onAddRow",
+          "params": [],
+          "returnType": "AddRowResult",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "clearSelection",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getBoard",
+          "params": [],
+          "returnType": "Board",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getConfig",
+          "params": [],
+          "returnType": "DifficultyConfig",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getState",
+          "params": [],
+          "returnType": "GameState",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getLevel",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getRemainingAddRows",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getSelectedCell",
+          "params": [],
+          "returnType": "Cell",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "isGameOver",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "isAddRowInRescueMode",
+          "params": [],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getAddRowEngine",
+          "params": [],
+          "returnType": "AddRowEngine",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "getSelectedCellIndex",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "GameEngine",
+          "methods": [
+            "GameEngine",
+            "setListener",
+            "onCellTapped",
+            "onAddRow",
+            "clearSelection",
+            "getBoard",
+            "getConfig",
+            "getState",
+            "getLevel",
+            "getRemainingAddRows",
+            "getSelectedCell",
+            "isGameOver",
+            "isAddRowInRescueMode",
+            "getAddRowEngine",
+            "getSelectedCellIndex"
+          ],
+          "properties": [
+            "board",
+            "config",
+            "addRowEngine",
+            "state",
+            "level",
+            "selectedCell",
+            "listener"
+          ],
+          "exported": true,
+          "lineCount": 182
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "GameEngine",
+        "setListener",
+        "onCellTapped",
+        "onAddRow",
+        "clearSelection",
+        "getBoard",
+        "getConfig",
+        "getState",
+        "getLevel",
+        "getRemainingAddRows",
+        "getSelectedCell",
+        "isGameOver",
+        "isAddRowInRescueMode",
+        "getAddRowEngine",
+        "getSelectedCellIndex",
+        "GameEngine"
+      ],
+      "totalLines": 191,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/engine/SeededRandom.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/engine/SeededRandom.java",
+      "contentHash": "e85e396a2be663521cc56a71605ed96ff4d3c14d0c44b4371a536a274a7cce59",
+      "functions": [
+        {
+          "name": "SeededRandom",
+          "params": [
+            "seed"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "next",
+          "params": [
+            "bits"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "nextInt",
+          "params": [
+            "bound"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "nextFloat",
+          "params": [],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "nextBoolean",
+          "params": [
+            "probability"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "nextIntRange",
+          "params": [
+            "min",
+            "max"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "shuffle",
+          "params": [
+            "array"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "shuffle",
+          "params": [
+            "array"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [
+        {
+          "name": "SeededRandom",
+          "methods": [
+            "SeededRandom",
+            "next",
+            "nextInt",
+            "nextFloat",
+            "nextBoolean",
+            "nextIntRange",
+            "shuffle",
+            "shuffle"
+          ],
+          "properties": [
+            "MULTIPLIER",
+            "ADDEND",
+            "MASK",
+            "seed"
+          ],
+          "exported": true,
+          "lineCount": 64
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "SeededRandom",
+        "nextInt",
+        "nextFloat",
+        "nextBoolean",
+        "nextIntRange",
+        "shuffle",
+        "shuffle",
+        "SeededRandom"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/ui/GameActivity.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/ui/GameActivity.java",
+      "contentHash": "1694e5682cd8d9e385aed8698fc8ca07c4321b3c810f64e40482286d9346073d",
+      "functions": [
+        {
+          "name": "onCreate",
+          "params": [
+            "savedInstanceState"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "startGame",
+          "params": [
+            "level"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "restartLevel",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "onCellTapped",
+          "params": [
+            "cellIndex"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 34
+        },
+        {
+          "name": "onAddRowClicked",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 27
+        },
+        {
+          "name": "onMatchSuccess",
+          "params": [
+            "indexA",
+            "indexB"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "onMatchFailed",
+          "params": [
+            "indexA",
+            "indexB"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "onRowAdded",
+          "params": [
+            "rowIndex",
+            "values",
+            "remainingAddRows"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "onLevelComplete",
+          "params": [
+            "level"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "onGameOver",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "updateAddRowButton",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "updateMatchCount",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "showStatus",
+          "params": [
+            "message",
+            "durationMs"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "hideStatus",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "shakeView",
+          "params": [
+            "view"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "showLevelCompleteDialog",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "showGameOverDialog",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        }
+      ],
+      "classes": [
+        {
+          "name": "GameActivity",
+          "methods": [
+            "onCreate",
+            "startGame",
+            "restartLevel",
+            "onCellTapped",
+            "onAddRowClicked",
+            "onMatchSuccess",
+            "onMatchFailed",
+            "onRowAdded",
+            "onLevelComplete",
+            "onGameOver",
+            "updateAddRowButton",
+            "updateMatchCount",
+            "showStatus",
+            "hideStatus",
+            "shakeView",
+            "showLevelCompleteDialog",
+            "showGameOverDialog"
+          ],
+          "properties": [
+            "EXTRA_LEVEL",
+            "engine",
+            "gridView",
+            "scrollView",
+            "tvLevel",
+            "tvAddRowCount",
+            "tvMatches",
+            "tvStatus",
+            "btnAddRow",
+            "btnNewGame",
+            "matchCount"
+          ],
+          "exported": true,
+          "lineCount": 212
+        }
+      ],
+      "imports": [
+        {
+          "source": "android.animation.ObjectAnimator",
+          "specifiers": [
+            "ObjectAnimator"
+          ]
+        },
+        {
+          "source": "android.os.Bundle",
+          "specifiers": [
+            "Bundle"
+          ]
+        },
+        {
+          "source": "android.view.View",
+          "specifiers": [
+            "View"
+          ]
+        },
+        {
+          "source": "android.widget.Button",
+          "specifiers": [
+            "Button"
+          ]
+        },
+        {
+          "source": "android.widget.ScrollView",
+          "specifiers": [
+            "ScrollView"
+          ]
+        },
+        {
+          "source": "android.widget.TextView",
+          "specifiers": [
+            "TextView"
+          ]
+        },
+        {
+          "source": "androidx.appcompat.app.AlertDialog",
+          "specifiers": [
+            "AlertDialog"
+          ]
+        },
+        {
+          "source": "androidx.appcompat.app.AppCompatActivity",
+          "specifiers": [
+            "AppCompatActivity"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.R",
+          "specifiers": [
+            "R"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.engine.GameEngine",
+          "specifiers": [
+            "GameEngine"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.engine.GameEngine.AddRowResult",
+          "specifiers": [
+            "AddRowResult"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.engine.GameEngine.MatchResult",
+          "specifiers": [
+            "MatchResult"
+          ]
+        }
+      ],
+      "exports": [
+        "EXTRA_LEVEL",
+        "onMatchSuccess",
+        "onMatchFailed",
+        "onRowAdded",
+        "onLevelComplete",
+        "onGameOver",
+        "GameActivity"
+      ],
+      "totalLines": 240,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/ui/GridView.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/ui/GridView.java",
+      "contentHash": "6b1282a8a318a40c18fd5d6d71a978cc2a3dda0bbbf2cc6c0093337659fe6d9d",
+      "functions": [
+        {
+          "name": "GridView",
+          "params": [
+            "context"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "GridView",
+          "params": [
+            "context",
+            "attrs"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "GridView",
+          "params": [
+            "context",
+            "attrs",
+            "defStyle"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "init",
+          "params": [
+            "context"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "setBoard",
+          "params": [
+            "board"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "setSelectedIndex",
+          "params": [
+            "index"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "setCellTapListener",
+          "params": [
+            "listener"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "refresh",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "rebuildViews",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 37
+        },
+        {
+          "name": "updateCellStates",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 37
+        },
+        {
+          "name": "onMeasure",
+          "params": [
+            "widthMeasureSpec",
+            "heightMeasureSpec"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "onLayout",
+          "params": [
+            "changed",
+            "left",
+            "top",
+            "right",
+            "bottom"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "onSizeChanged",
+          "params": [
+            "w",
+            "h",
+            "oldw",
+            "oldh"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        }
+      ],
+      "classes": [
+        {
+          "name": "GridView",
+          "methods": [
+            "GridView",
+            "GridView",
+            "GridView",
+            "init",
+            "setBoard",
+            "setSelectedIndex",
+            "setCellTapListener",
+            "refresh",
+            "rebuildViews",
+            "updateCellStates",
+            "onMeasure",
+            "onLayout",
+            "onSizeChanged"
+          ],
+          "properties": [
+            "COLS",
+            "CELL_PADDING_DP",
+            "board",
+            "selectedIndex",
+            "tapListener",
+            "cellSize",
+            "cellPadding"
+          ],
+          "exported": true,
+          "lineCount": 176
+        }
+      ],
+      "imports": [
+        {
+          "source": "android.content.Context",
+          "specifiers": [
+            "Context"
+          ]
+        },
+        {
+          "source": "android.util.AttributeSet",
+          "specifiers": [
+            "AttributeSet"
+          ]
+        },
+        {
+          "source": "android.view.View",
+          "specifiers": [
+            "View"
+          ]
+        },
+        {
+          "source": "android.view.ViewGroup",
+          "specifiers": [
+            "ViewGroup"
+          ]
+        },
+        {
+          "source": "android.widget.TextView",
+          "specifiers": [
+            "TextView"
+          ]
+        },
+        {
+          "source": "android.graphics.Paint",
+          "specifiers": [
+            "Paint"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.R",
+          "specifiers": [
+            "R"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.engine.Board",
+          "specifiers": [
+            "Board"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.engine.Cell",
+          "specifiers": [
+            "Cell"
+          ]
+        }
+      ],
+      "exports": [
+        "GridView",
+        "GridView",
+        "GridView",
+        "setBoard",
+        "setSelectedIndex",
+        "setCellTapListener",
+        "refresh",
+        "GridView"
+      ],
+      "totalLines": 196,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/java/com/numbermatch/puzzle/ui/LevelSelectActivity.java": {
+      "filePath": "android/app/src/main/java/com/numbermatch/puzzle/ui/LevelSelectActivity.java",
+      "contentHash": "9b0e92b173d83e831a31eea993982cf72d9f90140546bf19be13f405385e424c",
+      "functions": [
+        {
+          "name": "onCreate",
+          "params": [
+            "savedInstanceState"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 13
+        }
+      ],
+      "classes": [
+        {
+          "name": "LevelSelectActivity",
+          "methods": [
+            "onCreate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 65
+        }
+      ],
+      "imports": [
+        {
+          "source": "android.content.Intent",
+          "specifiers": [
+            "Intent"
+          ]
+        },
+        {
+          "source": "android.os.Bundle",
+          "specifiers": [
+            "Bundle"
+          ]
+        },
+        {
+          "source": "android.view.LayoutInflater",
+          "specifiers": [
+            "LayoutInflater"
+          ]
+        },
+        {
+          "source": "android.view.View",
+          "specifiers": [
+            "View"
+          ]
+        },
+        {
+          "source": "android.view.ViewGroup",
+          "specifiers": [
+            "ViewGroup"
+          ]
+        },
+        {
+          "source": "android.widget.TextView",
+          "specifiers": [
+            "TextView"
+          ]
+        },
+        {
+          "source": "androidx.annotation.NonNull",
+          "specifiers": [
+            "NonNull"
+          ]
+        },
+        {
+          "source": "androidx.appcompat.app.AppCompatActivity",
+          "specifiers": [
+            "AppCompatActivity"
+          ]
+        },
+        {
+          "source": "androidx.recyclerview.widget.GridLayoutManager",
+          "specifiers": [
+            "GridLayoutManager"
+          ]
+        },
+        {
+          "source": "androidx.recyclerview.widget.RecyclerView",
+          "specifiers": [
+            "RecyclerView"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.R",
+          "specifiers": [
+            "R"
+          ]
+        },
+        {
+          "source": "com.numbermatch.puzzle.engine.DifficultyConfig",
+          "specifiers": [
+            "DifficultyConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "LevelSelectActivity"
+      ],
+      "totalLines": 83,
+      "hasStructuralAnalysis": true
+    },
+    "android/app/src/main/res/drawable/cell_matched.xml": {
+      "filePath": "android/app/src/main/res/drawable/cell_matched.xml",
+      "contentHash": "d7f7ab65e28670d4e5b505244e7a06794a6c30e73897586e370fa28f67a4eab7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/drawable/cell_normal.xml": {
+      "filePath": "android/app/src/main/res/drawable/cell_normal.xml",
+      "contentHash": "ea7fc56b4eb3f9012a43a8be44cce40164ca256d772b1ffb30d51f5e0d805427",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/drawable/cell_selected.xml": {
+      "filePath": "android/app/src/main/res/drawable/cell_selected.xml",
+      "contentHash": "9f7a1db5aeae4719bc7022f2cff626d04d35ec96f6388a7d22b5f40f37b88322",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/drawable/level_button_bg.xml": {
+      "filePath": "android/app/src/main/res/drawable/level_button_bg.xml",
+      "contentHash": "5231d150e398417e7398de816b376aad9e73c07fcb5a03488961d3f64bd92d7b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/layout/activity_game.xml": {
+      "filePath": "android/app/src/main/res/layout/activity_game.xml",
+      "contentHash": "6cfa7af23d1a2c4fbe7184e91cf579efb98e432df6ee29a1677fda9f7d72452f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 110,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/layout/activity_level_select.xml": {
+      "filePath": "android/app/src/main/res/layout/activity_level_select.xml",
+      "contentHash": "d7ca0b6189abd487fc71b7535d4ba8b072736870ad0696417516aaa4da3bb586",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/layout/item_level.xml": {
+      "filePath": "android/app/src/main/res/layout/item_level.xml",
+      "contentHash": "4776a1cd7dcb79924ad3acdc8ba9d43079dc20202c369a85ab8e048154aad0ac",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.xml": {
+      "filePath": "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.xml",
+      "contentHash": "be507bb5b50216a9cf9b0e59276c107fe4d1db7f792ecc01678674e7fa4b5594",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/mipmap-hdpi/ic_launcher.xml": {
+      "filePath": "android/app/src/main/res/mipmap-hdpi/ic_launcher.xml",
+      "contentHash": "be507bb5b50216a9cf9b0e59276c107fe4d1db7f792ecc01678674e7fa4b5594",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/values/colors.xml": {
+      "filePath": "android/app/src/main/res/values/colors.xml",
+      "contentHash": "6fd4355751a601670a3d0fca9e0adb552af956bb047954910cc2f980d1588a30",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/values/strings.xml": {
+      "filePath": "android/app/src/main/res/values/strings.xml",
+      "contentHash": "226378f85109b17dbea74ee6b72cf8eaebd9909ec3f396d1e0f5240bc61eb467",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/main/res/values/themes.xml": {
+      "filePath": "android/app/src/main/res/values/themes.xml",
+      "contentHash": "a2954fd77a8a8355fab5edd4b0a3575ab29352794fdbcbffd67d2c2748b5dbc0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "android/app/src/test/java/com/numbermatch/puzzle/engine/BoardSolvabilityTest.java": {
+      "filePath": "android/app/src/test/java/com/numbermatch/puzzle/engine/BoardSolvabilityTest.java",
+      "contentHash": "35e263950fb29d3ef346361ea3403c5c6388b546e55bd96e1b1fdcfc7c180e4f",
+      "functions": [
+        {
+          "name": "allLevelsGenerateSolvableBoards",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "sawtoothCurveIsCorrect",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "addRowRescueMechanicTriggers",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "cellMatchRules",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "boardAdjacencyRules",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "addRowLimitIsEnforced",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "stragglerDetection",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "BoardSolvabilityTest",
+          "methods": [
+            "allLevelsGenerateSolvableBoards",
+            "sawtoothCurveIsCorrect",
+            "addRowRescueMechanicTriggers",
+            "cellMatchRules",
+            "boardAdjacencyRules",
+            "addRowLimitIsEnforced",
+            "stragglerDetection"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 126
+        }
+      ],
+      "imports": [
+        {
+          "source": "org.junit.Test",
+          "specifiers": [
+            "Test"
+          ]
+        },
+        {
+          "source": "org.junit.Assert",
+          "specifiers": [
+            "*"
+          ]
+        }
+      ],
+      "exports": [
+        "allLevelsGenerateSolvableBoards",
+        "sawtoothCurveIsCorrect",
+        "addRowRescueMechanicTriggers",
+        "cellMatchRules",
+        "boardAdjacencyRules",
+        "addRowLimitIsEnforced",
+        "stragglerDetection",
+        "BoardSolvabilityTest"
+      ],
+      "totalLines": 136,
+      "hasStructuralAnalysis": true
+    },
+    "android/build.gradle": {
+      "filePath": "android/build.gradle",
+      "contentHash": "c635824d55473633ce110f69c3308cbff86c66b090cd9f599325b8e5ca679808",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "android/gradle/wrapper/gradle-wrapper.properties": {
+      "filePath": "android/gradle/wrapper/gradle-wrapper.properties",
+      "contentHash": "76b172b6d51509c4bfa8bc7558214229d8c4be9360b76199125588709f4ab73c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "android/gradlew.bat": {
+      "filePath": "android/gradlew.bat",
+      "contentHash": "7eab34502be9eb647bef9ef696b4965c6a0e14588c95503945e2cd4a58a3a427",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "android/settings.gradle": {
+      "filePath": "android/settings.gradle",
+      "contentHash": "9266e3f3362168a98c22d43b31dd6736ece5636a479af96a36106acdbed041fc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "engine_test/EngineDemo.java": {
+      "filePath": "engine_test/EngineDemo.java",
+      "contentHash": "f90d75256615588db3b3b539eb847457b225718dbc71ddae48a8cfa19147d6af",
+      "functions": [
+        {
+          "name": "main",
+          "params": [
+            "args"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "EngineDemo",
+          "methods": [
+            "main"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "main",
+        "EngineDemo"
+      ],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "6bec09b58b5d3dc68f775a07ab251c05846cd3bcf124feb98badaf4458f4eb23",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 307,
+      "hasStructuralAnalysis": true
+    },
+    "vercel.json": {
+      "filePath": "vercel.json",
+      "contentHash": "73738ec4cee28b02a927eac5d70766e850a771b1c0f0f54b3ab25f2464cb7799",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "web/addRowEngine.js": {
+      "filePath": "web/addRowEngine.js",
+      "contentHash": "91b04803e968c80137427659dbd49bf25025893469b601af52e48fc31f066616",
+      "functions": [
+        {
+          "name": "analyzeBoard",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 41
+        },
+        {
+          "name": "pickAddValue",
+          "params": [
+            "board",
+            "cfg",
+            "isRescue"
+          ],
+          "exported": false,
+          "lineCount": 33
+        },
+        {
+          "name": "executeAddRow",
+          "params": [
+            "board",
+            "cfg",
+            "dryPresses"
+          ],
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "buildCandidateList",
+          "params": [
+            "board",
+            "isRescue"
+          ],
+          "exported": false,
+          "lineCount": 30
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 163,
+      "hasStructuralAnalysis": true
+    },
+    "web/AddRowPlanner.js": {
+      "filePath": "web/AddRowPlanner.js",
+      "contentHash": "d0e8cbc7872982700d676fd33d99b3a1ea92221b898d2453bebdb3110046cba7",
+      "functions": [
+        {
+          "name": "planNextRow",
+          "params": [
+            "board",
+            "cfg",
+            "rng"
+          ],
+          "exported": false,
+          "lineCount": 88
+        },
+        {
+          "name": "selectWeighted",
+          "params": [
+            "candidates",
+            "rng"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "boardSeed",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "executeAddRow",
+          "params": [
+            "board",
+            "cfg",
+            "dryPresses"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "AddEng",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 170,
+      "hasStructuralAnalysis": true
+    },
+    "web/BoardAnalyzer.js": {
+      "filePath": "web/BoardAnalyzer.js",
+      "contentHash": "054754013ee721f20beb0e1bc6781368886be14d6235bbe4e926a9ef9f6dc8c2",
+      "functions": [
+        {
+          "name": "valuesMatch",
+          "params": [
+            "va",
+            "vb"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "checkHorizontal",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "checkVertical",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "checkDiagonal",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "checkWrap",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "canMatch",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "findAllMatches",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "hasAnyMatch",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "isBoardCleared",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "hasAnyMatch_compat",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "analyzeBoard",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 50
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 194,
+      "hasStructuralAnalysis": true
+    },
+    "web/BoardGenerator.js": {
+      "filePath": "web/BoardGenerator.js",
+      "contentHash": "09114489bfaa75adc607c0817cd07a4a84b1166ec8ed71b7e3adbcc3b8112235",
+      "functions": [
+        {
+          "name": "buildPairPool",
+          "params": [
+            "pairCount",
+            "frictionFactor",
+            "rng"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "getPairValues",
+          "params": [
+            "pairs"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "pickTrueDecoy",
+          "params": [
+            "pairVals",
+            "rng"
+          ],
+          "exported": false,
+          "lineCount": 28
+        },
+        {
+          "name": "placePairsWithGap",
+          "params": [
+            "pairs",
+            "minGap",
+            "maxGap",
+            "rng"
+          ],
+          "exported": false,
+          "lineCount": 42
+        },
+        {
+          "name": "evaluateBoard",
+          "params": [
+            "board",
+            "cfg"
+          ],
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "generateBoard",
+          "params": [
+            "cfg",
+            "attempt"
+          ],
+          "exported": false,
+          "lineCount": 35
+        },
+        {
+          "name": "generateFallbackBoard",
+          "params": [
+            "cfg",
+            "seed"
+          ],
+          "exported": false,
+          "lineCount": 25
+        },
+        {
+          "name": "generateLevel1Board",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "makeBoard",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 209,
+      "hasStructuralAnalysis": true
+    },
+    "web/boardValidator.js": {
+      "filePath": "web/boardValidator.js",
+      "contentHash": "f113cb94177bef9e1a5602529d1039acb51e9c35274de00f390f4f84462e3392",
+      "functions": [
+        {
+          "name": "validateBoard",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getBoardWithValidation",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "seedBoard",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "web/CleanupEngine.js": {
+      "filePath": "web/CleanupEngine.js",
+      "contentHash": "5cb1b8783b9fb3a418e93072895245ebf618728d2fc0f943deef9b41d02ab0f7",
+      "functions": [
+        {
+          "name": "findStragglers",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getWeightedActiveComplements",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 26
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "web/DifficultyEngine.js": {
+      "filePath": "web/DifficultyEngine.js",
+      "contentHash": "9545b5741d62edb2b46df0f3dc40f622c353ab8060eed55d8a07a371774071df",
+      "functions": [
+        {
+          "name": "getLevelConfig",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "isReliefLevel",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 138,
+      "hasStructuralAnalysis": true
+    },
+    "web/engine.js": {
+      "filePath": "web/engine.js",
+      "contentHash": "d1fa5a12c51a6ee6d85530465d169f332fecb0f87719135cf938b48777d9b1a4",
+      "functions": [
+        {
+          "name": "RNG",
+          "params": [
+            "seed"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getCfg",
+          "params": [
+            "lvl"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "isRelief",
+          "params": [
+            "lvl"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "Board",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "seedBoard",
+          "params": [
+            "lvl"
+          ],
+          "exported": false,
+          "lineCount": 28
+        },
+        {
+          "name": "AddEng",
+          "params": [
+            "lvl"
+          ],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 187,
+      "hasStructuralAnalysis": true
+    },
+    "web/game.html": {
+      "filePath": "web/game.html",
+      "contentHash": "83acce8cff053ecb1dd5f36bf2fad7bc51ee4720e1d17b0c43afa1b029264ec3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "web/game.js": {
+      "filePath": "web/game.js",
+      "contentHash": "e993a4c04ca24e0389f6df7a7f4520cced829dd223ab7afdae2d9e31e60a3960",
+      "functions": [
+        {
+          "name": "ge",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "showScr",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "showOv",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "hideOv",
+          "params": [
+            "id"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "hideAllOv",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "buildLevels",
+          "params": [],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "startGame",
+          "params": [
+            "lvl"
+          ],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "goMenu",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "restart",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setHintLocked",
+          "params": [
+            "locked"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "unlockHint",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "renderGrid",
+          "params": [],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "makeCell",
+          "params": [
+            "i"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "cEl",
+          "params": [
+            "i"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "refreshCell",
+          "params": [
+            "i"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "appendRow",
+          "params": [
+            "ri"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "onTap",
+          "params": [
+            "i"
+          ],
+          "exported": false,
+          "lineCount": 37
+        },
+        {
+          "name": "doHint",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "clearHints",
+          "params": [],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "doAdd",
+          "params": [],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "updateBadges",
+          "params": [],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "showToast",
+          "params": [
+            "msg",
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "hideToast",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "showWin",
+          "params": [],
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "showOver",
+          "params": [],
+          "exported": false,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 253,
+      "hasStructuralAnalysis": true
+    },
+    "web/HealthCalculator.js": {
+      "filePath": "web/HealthCalculator.js",
+      "contentHash": "92eeb6074cdaa05b1c96addb7608e8614709f7f0e9996b70992c85dc9ed0c217",
+      "functions": [
+        {
+          "name": "getOrphanCells",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "getIsolatedRowsCount",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getAverageScanDistance",
+          "params": [
+            "board",
+            "matches"
+          ],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "getFutureChainPotential",
+          "params": [
+            "board",
+            "matches"
+          ],
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "getDeadEndRisk",
+          "params": [
+            "board",
+            "matches"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "calculateBoardHealth",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 31
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    "web/index.html": {
+      "filePath": "web/index.html",
+      "contentHash": "50a811a70b1ce32d1ec44da22478e6bbef386fe55c8cb587f133f3785f23bae9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 366,
+      "hasStructuralAnalysis": false
+    },
+    "web/levelConfig.js": {
+      "filePath": "web/levelConfig.js",
+      "contentHash": "297bd73ab203394135351911b28c1cbf7e569ab5bd5c27830d2de45a915d92ee",
+      "functions": [
+        {
+          "name": "getLevelConfig",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "isReliefLevel",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 1
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "web/matchFinder.js": {
+      "filePath": "web/matchFinder.js",
+      "contentHash": "2bb150cdf8a70948f1edca74e181dcbb303243365845d193620d1bf76a665ba5",
+      "functions": [
+        {
+          "name": "valuesMatch",
+          "params": [
+            "va",
+            "vb"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "checkHorizontal",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "checkVertical",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "checkDiagonal",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "checkWrap",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "canMatch",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "findAllMatches",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "hasAnyMatch",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "isBoardCleared",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 112,
+      "hasStructuralAnalysis": true
+    },
+    "web/package.json": {
+      "filePath": "web/package.json",
+      "contentHash": "2ae14ebff37cc79ffcf07a57e8ba1800b1f939abdeafc7b1fda93536c486c589",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "web/RescueEngine.js": {
+      "filePath": "web/RescueEngine.js",
+      "contentHash": "bcff6642584456ba0251c9b061e0e061f87f4dfcd866fbf903d1922ba1b1061e",
+      "functions": [
+        {
+          "name": "comp",
+          "params": [
+            "v"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "shouldRescue",
+          "params": [
+            "dryPresses"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "generateRescueRow",
+          "params": [
+            "board",
+            "rng"
+          ],
+          "exported": false,
+          "lineCount": 40
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "web/rng.js": {
+      "filePath": "web/rng.js",
+      "contentHash": "b68d56c46bda0c5f16588bbd70ff7c26e55b0308b990f5c36e41ac55d27ea791",
+      "functions": [
+        {
+          "name": "RNG",
+          "params": [
+            "seed"
+          ],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "web/server.js": {
+      "filePath": "web/server.js",
+      "contentHash": "77ca2f23f62e50a9974082b8fd1e3c45ab18d86178514bb2df0735c363783808",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "web/simulate_difficulty.js": {
+      "filePath": "web/simulate_difficulty.js",
+      "contentHash": "2841f9fb891c8b12097947c88303c768afb6944d7dc1a6b80dc087fb6f313a05",
+      "functions": [
+        {
+          "name": "autoPlay",
+          "params": [
+            "initialBoard",
+            "cfg",
+            "maxAddRows"
+          ],
+          "exported": false,
+          "lineCount": 46
+        },
+        {
+          "name": "humanPlay",
+          "params": [
+            "initialBoard",
+            "cfg",
+            "maxAddRows",
+            "gameIndex"
+          ],
+          "exported": false,
+          "lineCount": 157
+        },
+        {
+          "name": "percentile",
+          "params": [
+            "arr",
+            "p"
+          ],
+          "exported": false,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 354,
+      "hasStructuralAnalysis": true
+    },
+    "web/simulate.js": {
+      "filePath": "web/simulate.js",
+      "contentHash": "7f30e97e16d00402f1cd56e55eca0db95175fb3ec69d96808085d6acb73f7e8c",
+      "functions": [
+        {
+          "name": "stdDev",
+          "params": [
+            "arr"
+          ],
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "simulateGame",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "runSimulation",
+          "params": [],
+          "exported": false,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "web/SolutionGraph.js": {
+      "filePath": "web/SolutionGraph.js",
+      "contentHash": "3b50ef9f0c65099f5381f0d7fe7eab37055fce3a46b3554e60e23eae838074fe",
+      "functions": [
+        {
+          "name": "_greedyRun",
+          "params": [
+            "board",
+            "pickFn"
+          ],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "_pickFirst",
+          "params": [
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "_pickLast",
+          "params": [
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "_pickShortest",
+          "params": [
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "_pickLongest",
+          "params": [
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "_pickRarest",
+          "params": [
+            "ms",
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "isBoardSolvable",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 23
+        },
+        {
+          "name": "solveBoard",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 29
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 145,
+      "hasStructuralAnalysis": true
+    },
+    "web/solver.js": {
+      "filePath": "web/solver.js",
+      "contentHash": "a847f2067305a7128617ec7377fbc5487b687cb13d8372feecae4687335a8432",
+      "functions": [
+        {
+          "name": "isBoardSolvable",
+          "params": [
+            "board"
+          ],
+          "exported": false,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/AddRowPlanner.ts": {
+      "filePath": "web/src/AddRowPlanner.ts",
+      "contentHash": "4d4593cb94f8e6c25bbcc65b44e3aff610c83c666faf3111451e09ffa93de0ed",
+      "functions": [
+        {
+          "name": "planNextRow",
+          "params": [
+            "board",
+            "cfg",
+            "rng"
+          ],
+          "returnType": "number[]",
+          "exported": false,
+          "lineCount": 92
+        },
+        {
+          "name": "selectWeighted",
+          "params": [
+            "candidates",
+            "rng"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "boardSeed",
+          "params": [
+            "board"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "executeAddRow",
+          "params": [
+            "board",
+            "cfg",
+            "dryPresses"
+          ],
+          "returnType": "{ board: Cell[]; val: number; wasRescue: boolean }",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "AddEng",
+          "params": [
+            "lvlIndex"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 186,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/BoardAnalyzer.ts": {
+      "filePath": "web/src/BoardAnalyzer.ts",
+      "contentHash": "888e7ac01d5840a692200de498e3a055a5f4a0b9fb14cc2fd408480c0ebcd6bb",
+      "functions": [
+        {
+          "name": "valuesMatch",
+          "params": [
+            "va",
+            "vb"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "checkHorizontal",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "checkVertical",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "checkDiagonal",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "checkWrap",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "canMatch",
+          "params": [
+            "board",
+            "a",
+            "b"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "findAllMatches",
+          "params": [
+            "board"
+          ],
+          "returnType": "[number, number][]",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "hasAnyMatch",
+          "params": [
+            "board"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "isBoardCleared",
+          "params": [
+            "board"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "hasAnyMatch_compat",
+          "params": [
+            "board"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "analyzeBoard",
+          "params": [
+            "board"
+          ],
+          "returnType": "{ active: number[]; freq: { [key: number]: number }; stragglers: number[]; isolated: number[] }",
+          "exported": false,
+          "lineCount": 53
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 200,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/BoardGenerator.ts": {
+      "filePath": "web/src/BoardGenerator.ts",
+      "contentHash": "7fb4eeb45dc683f0718d8234af3e27703614039a5bcc7273227c3bdc565443f7",
+      "functions": [
+        {
+          "name": "buildPairPool",
+          "params": [
+            "pairCount",
+            "frictionFactor",
+            "rng"
+          ],
+          "returnType": "number[][]",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "getPairValues",
+          "params": [
+            "pairs"
+          ],
+          "returnType": "{ [key: number]: boolean }",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "pickTrueDecoy",
+          "params": [
+            "pairVals",
+            "rng"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 24
+        },
+        {
+          "name": "placePairsWithGap",
+          "params": [
+            "pairs",
+            "minGap",
+            "maxGap",
+            "rng"
+          ],
+          "returnType": "{ slots: (number | null)[]; free: number[] }",
+          "exported": false,
+          "lineCount": 44
+        },
+        {
+          "name": "evaluateBoard",
+          "params": [
+            "board",
+            "cfg"
+          ],
+          "returnType": "{ solvable: boolean; matchDensity: number; avgScanDist: number }",
+          "exported": false,
+          "lineCount": 34
+        },
+        {
+          "name": "generateBoard",
+          "params": [
+            "cfg",
+            "attempt"
+          ],
+          "returnType": "Cell[]",
+          "exported": false,
+          "lineCount": 44
+        },
+        {
+          "name": "generateFallbackBoard",
+          "params": [
+            "cfg",
+            "seed"
+          ],
+          "returnType": "Cell[]",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "generateLevel1Board",
+          "params": [],
+          "returnType": "Cell[]",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "makeBoard",
+          "params": [
+            "lvlIndex"
+          ],
+          "returnType": "Cell[]",
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 229,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/boardValidator.ts": {
+      "filePath": "web/src/boardValidator.ts",
+      "contentHash": "6fa00073c21686a3e51ac322b82e8f858c4f5d980053b9e1315bacd28a14fcda",
+      "functions": [
+        {
+          "name": "validateBoard",
+          "params": [
+            "board"
+          ],
+          "returnType": "{ valid: boolean; reason: string }",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getBoardWithValidation",
+          "params": [
+            "lvlIndex"
+          ],
+          "returnType": "Cell[]",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "seedBoard",
+          "params": [
+            "lvlIndex"
+          ],
+          "returnType": "any",
+          "exported": false,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/CleanupEngine.ts": {
+      "filePath": "web/src/CleanupEngine.ts",
+      "contentHash": "046d30fb87b1b7a76239ba64071de4764b96edc0cf6f534fcb8d987a89402872",
+      "functions": [
+        {
+          "name": "findStragglers",
+          "params": [
+            "board"
+          ],
+          "returnType": "number[]",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getWeightedActiveComplements",
+          "params": [
+            "board"
+          ],
+          "returnType": "{ val: number; weight: number }[]",
+          "exported": false,
+          "lineCount": 27
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/DifficultyEngine.ts": {
+      "filePath": "web/src/DifficultyEngine.ts",
+      "contentHash": "3a172cef1b15bb4d63a97cf33d78853083f90c58b9d61e2e3127d9593ea8934b",
+      "functions": [
+        {
+          "name": "getLevelConfig",
+          "params": [
+            "lvlIndex"
+          ],
+          "returnType": "LevelConfig",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "isReliefLevel",
+          "params": [
+            "lvlIndex"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 161,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/global.d.ts": {
+      "filePath": "web/src/global.d.ts",
+      "contentHash": "c4370d135dd0ba2762d75fff659301371bcfe3cdb092834ad024daa603b0e291",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/HealthCalculator.ts": {
+      "filePath": "web/src/HealthCalculator.ts",
+      "contentHash": "9ea52b93c99bd905b099e1bd2de4b60fe236ca2b23f0b095d838d56ca2893552",
+      "functions": [
+        {
+          "name": "getOrphanCells",
+          "params": [
+            "board"
+          ],
+          "returnType": "number[]",
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "getIsolatedRowsCount",
+          "params": [
+            "board"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getAverageScanDistance",
+          "params": [
+            "board",
+            "matches"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "getFutureChainPotential",
+          "params": [
+            "board",
+            "matches"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getDeadEndRisk",
+          "params": [
+            "board",
+            "matches"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "calculateBoardHealth",
+          "params": [
+            "board"
+          ],
+          "returnType": "HealthReport",
+          "exported": false,
+          "lineCount": 35
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 153,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/RescueEngine.ts": {
+      "filePath": "web/src/RescueEngine.ts",
+      "contentHash": "e4d0eba83b39ec79c93cf4812dc22cd21c75fea7f245ca09bb96982c1a2f7462",
+      "functions": [
+        {
+          "name": "comp",
+          "params": [
+            "v"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "shouldRescue",
+          "params": [
+            "dryPresses"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "generateRescueRow",
+          "params": [
+            "board",
+            "rng"
+          ],
+          "returnType": "number[]",
+          "exported": false,
+          "lineCount": 46
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "web/src/SolutionGraph.ts": {
+      "filePath": "web/src/SolutionGraph.ts",
+      "contentHash": "9e8f185a66113b693fc287d43d2b36d3bd86857a211a2e8a18b0f3c09ee58b40",
+      "functions": [
+        {
+          "name": "_greedyRun",
+          "params": [
+            "board",
+            "pickFn"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "_pickFirst",
+          "params": [
+            "ms"
+          ],
+          "returnType": "[number,number]",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "_pickLast",
+          "params": [
+            "ms"
+          ],
+          "returnType": "[number,number]",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "_pickShortest",
+          "params": [
+            "ms"
+          ],
+          "returnType": "[number,number]",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "_pickLongest",
+          "params": [
+            "ms"
+          ],
+          "returnType": "[number,number]",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "_pickRarest",
+          "params": [
+            "ms",
+            "board"
+          ],
+          "returnType": "[number,number]",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "isBoardSolvable",
+          "params": [
+            "board"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "solveBoard",
+          "params": [
+            "board"
+          ],
+          "returnType": "[number,number][] | null",
+          "exported": false,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 135,
+      "hasStructuralAnalysis": true
+    },
+    "web/style.css": {
+      "filePath": "web/style.css",
+      "contentHash": "1bec1e684845627884c64b8f58b2fa26ed40f4eaa8d6720798cc5b553b5782c5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 238,
+      "hasStructuralAnalysis": false
+    },
+    "web/tests.js": {
+      "filePath": "web/tests.js",
+      "contentHash": "ed1270b382c2936ea3bd4f9e8aea94a8f850221028823ec1b4841272c352f8f0",
+      "functions": [
+        {
+          "name": "assert",
+          "params": [
+            "desc",
+            "condition"
+          ],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 179,
+      "hasStructuralAnalysis": true
+    },
+    "web/tsconfig.json": {
+      "filePath": "web/tsconfig.json",
+      "contentHash": "e54ca868e3c4cfb39a5e73e26f3058b608affaf27cda539e3f20c703f19e9d4f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "web/vercel.json": {
+      "filePath": "web/vercel.json",
+      "contentHash": "c28f110ecde51c0bb1ca55968f8f000933fb22df9767cee04ecd638e29b93c82",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
