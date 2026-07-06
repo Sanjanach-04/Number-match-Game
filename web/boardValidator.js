@@ -19,17 +19,22 @@ function validateBoard(board) {
 }
 var MAX_BOARD_ATTEMPTS = 10;
 function getBoardWithValidation(lvlIndex) {
+    var sessionSeed = Math.floor(Math.random() * 1000000);
     if (lvlIndex === 0) {
-        return generateLevel1Board();
+        return generateLevel1Board(sessionSeed);
     }
     var cfg = getLevelConfig(lvlIndex);
     for (var attempt = 0; attempt < MAX_BOARD_ATTEMPTS; attempt++) {
-        var board = generateBoard(cfg, attempt);
-        var result = validateBoard(board);
+        var seedOffset = (sessionSeed + attempt * 7919) >>> 0;
+        var board = generateBoard(cfg, seedOffset);
+        var transformRng = new RNG((sessionSeed + attempt * 9999) >>> 0);
+        var transformedBoard = transformBoardValues(board, transformRng);
+        transformedBoard = transformBoardSpatial(transformedBoard, transformRng);
+        var result = validateBoard(transformedBoard);
         if (result.valid)
-            return board;
+            return transformedBoard;
     }
-    return generateLevel1Board(); // final fallback
+    return generateLevel1Board(sessionSeed); // final fallback
 }
 // Wrapper class for legacy engine.js seeder
 function seedBoard(lvlIndex) {

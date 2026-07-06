@@ -192,10 +192,51 @@ function generateFallbackBoard(cfg, seed) {
     }
     return vals.map(function (v) { return { v: v, m: false }; });
 }
-// Hand-crafted Level 1 board
-function generateLevel1Board() {
-    var raw = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5];
-    return raw.map(function (v) { return { v: v, m: false }; });
+var LEVEL_1_TEMPLATES = [
+    [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5],
+    [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6],
+    [3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7],
+    [4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8]
+];
+function transformBoardValues(board, rng) {
+    var pairs = [[1, 9], [2, 8], [3, 7], [4, 6]];
+    rng.shuffle(pairs);
+    var mapping = {};
+    mapping[5] = 5;
+    var originalPairs = [[1, 9], [2, 8], [3, 7], [4, 6]];
+    for (var i = 0; i < pairs.length; i++) {
+        var orig = originalPairs[i];
+        var target = pairs[i];
+        var swap = rng.bool(0.5);
+        if (swap) {
+            mapping[orig[0]] = target[1];
+            mapping[orig[1]] = target[0];
+        }
+        else {
+            mapping[orig[0]] = target[0];
+            mapping[orig[1]] = target[1];
+        }
+    }
+    return board.map(function (c) {
+        return { v: mapping[c.v] || c.v, m: c.m };
+    });
+}
+function transformBoardSpatial(board, rng) {
+    var reverse = rng.bool(0.5);
+    if (reverse) {
+        return board.slice().reverse();
+    }
+    return board;
+}
+// Hand-crafted Level 1 board with transformations
+function generateLevel1Board(seed) {
+    var s = seed !== undefined ? seed : Math.floor(Math.random() * 1000000);
+    var rng = new RNG(s);
+    var template = LEVEL_1_TEMPLATES[rng.int(LEVEL_1_TEMPLATES.length)];
+    var board = template.map(function (v) { return { v: v, m: false }; });
+    board = transformBoardValues(board, rng);
+    board = transformBoardSpatial(board, rng);
+    return board;
 }
 // Helper used for legacy validation
 function makeBoard(lvlIndex) {
@@ -206,3 +247,5 @@ globalThis.evaluateBoard = evaluateBoard;
 globalThis.generateBoard = generateBoard;
 globalThis.generateLevel1Board = generateLevel1Board;
 globalThis.makeBoard = makeBoard;
+globalThis.transformBoardValues = transformBoardValues;
+globalThis.transformBoardSpatial = transformBoardSpatial;

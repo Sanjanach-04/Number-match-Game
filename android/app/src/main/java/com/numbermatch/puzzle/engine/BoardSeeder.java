@@ -29,25 +29,39 @@ public class BoardSeeder {
      * The board is guaranteed to be solvable.
      */
     public static Board generateBoard(int level) {
+        long sessionSeed = System.currentTimeMillis() + (long)(Math.random() * 1000000);
+        return generateBoard(level, sessionSeed);
+    }
+
+    public static Board generateBoard(int level, long sessionSeed) {
         DifficultyConfig config = DifficultyConfig.forLevel(level);
         if (config.level == 1) {
-            return buildHandCraftedLevel1Board();
+            return buildHandCraftedLevel1Board(sessionSeed);
         }
 
         Board board = null;
         int attempt = 0;
 
-        while (board == null || !isSolvable(board)) {
-            long derivedSeed = config.seed + (long) attempt * 7919L;
+        while (attempt < 25) {
+            long derivedSeed = (sessionSeed + (long) attempt * 7919L) >>> 0;
             SeededRandom rng = new SeededRandom(derivedSeed);
-            board = buildBoard(config, rng);
-            attempt++;
-            if (attempt > 25) {
-                // Fallback: generate a trivially solvable board (safety net)
-                board = buildTrivialBoard(config);
+            Board candidateBoard = buildBoard(config, rng);
+            
+            SeededRandom transformRng = new SeededRandom(derivedSeed + 12345L);
+            candidateBoard = transformBoardValues(candidateBoard, transformRng);
+            candidateBoard = transformBoardSpatial(candidateBoard, transformRng);
+            
+            if (isSolvable(candidateBoard)) {
+                board = candidateBoard;
                 break;
             }
+            attempt++;
         }
+
+        if (board == null) {
+            board = buildTrivialBoard(config, sessionSeed);
+        }
+
         return board;
     }
 
@@ -215,22 +229,101 @@ public class BoardSeeder {
         return copy;
     }
 
-    private static Board buildHandCraftedLevel1Board() {
-        int[] values = {
-            1, 1, 2, 2, 3, 3, 4, 4, 5,
-            5, 6, 6, 7, 7, 8, 8, 9, 9,
-            1, 1, 2, 2, 3, 3, 4, 4, 5
+    private static Board buildHandCraftedLevel1Board(long sessionSeed) {
+        int[][] templates = {
+            {1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5},
+            {2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6},
+            {3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7},
+            {4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8}
         };
+
+        SeededRandom rng = new SeededRandom(sessionSeed);
+        int[] selectedTemplate = templates[rng.nextInt(templates.length)];
+
         Board board = new Board();
         for (int r = 0; r < INITIAL_ROWS; r++) {
             int[] row = new int[COLS];
-            System.arraycopy(values, r * COLS, row, 0, COLS);
+            System.arraycopy(selectedTemplate, r * COLS, row, 0, COLS);
             board.addRow(row);
+        }
+
+        board = transformBoardValues(board, rng);
+        board = transformBoardSpatial(board, rng);
+
+        return board;
+    }
+
+    private static Board buildTrivialBoard(DifficultyConfig config, long sessionSeed) {
+        return buildHandCraftedLevel1Board(sessionSeed);
+    }
+
+    private static Board transformBoardValues(Board board, SeededRandom rng) {
+        if (board == null) return null;
+        int[][] originalPairs = {{1, 9}, {2, 8}, {3, 7}, {4, 6}};
+        List<int[]> pairs = new ArrayList<>();
+        for (int[] p : originalPairs) {
+            pairs.add(p.clone());
+        }
+        for (int i = pairs.size() - 1; i > 0; i--) {
+            int j = rng.nextInt(i + 1);
+            int[] temp = pairs.get(i);
+            pairs.set(i, pairs.get(j));
+            pairs.set(j, temp);
+        }
+        int[] mapping = new int[10];
+        mapping[5] = 5;
+        for (int i = 0; i < pairs.size(); i++) {
+            int[] orig = originalPairs[i];
+            int[] target = pairs.get(i);
+            boolean swap = rng.nextBoolean(0.5f);
+            if (swap) {
+                mapping[orig[0]] = target[1];
+                mapping[orig[1]] = target[0];
+            } else {
+                mapping[orig[0]] = target[0];
+                mapping[orig[1]] = target[1];
+            }
+        }
+        int totalCells = board.getTotalCells();
+        for (int i = 0; i < totalCells; i++) {
+            Cell cell = board.getCellByIndex(i);
+            if (cell != null) {
+                int oldVal = cell.value;
+                if (oldVal >= 1 && oldVal <= 9) {
+                    cell.value = mapping[oldVal];
+                }
+            }
         }
         return board;
     }
 
-    private static Board buildTrivialBoard(DifficultyConfig config) {
-        return buildHandCraftedLevel1Board();
+    private static Board transformBoardSpatial(Board board, SeededRandom rng) {
+        if (board == null) return null;
+        boolean reverse = rng.nextBoolean(0.5f);
+        if (!reverse) return board;
+
+        int total = board.getTotalCells();
+        int[] reversedVals = new int[total];
+        boolean[] reversedMatched = new boolean[total];
+        for (int i = 0; i < total; i++) {
+            Cell c = board.getCellByIndex(total - 1 - i);
+            reversedVals[i] = (c != null) ? c.value : 1;
+            reversedMatched[i] = (c != null) && c.isMatched();
+        }
+
+        Board newBoard = new Board();
+        int rows = total / COLS;
+        for (int r = 0; r < rows; r++) {
+            int[] row = new int[COLS];
+            System.arraycopy(reversedVals, r * COLS, row, 0, COLS);
+            newBoard.addRow(row);
+        }
+        for (int i = 0; i < total; i++) {
+            if (reversedMatched[i]) {
+                Cell c = newBoard.getCellByIndex(i);
+                if (c != null) c.markMatched();
+            }
+        }
+        return newBoard;
     }
 }
