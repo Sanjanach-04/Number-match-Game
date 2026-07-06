@@ -69,7 +69,9 @@ for (var lvl = 1; lvl < 11; lvl++) {
 console.log('\n[boardValidator]');
 for (var lvl = 0; lvl < 11; lvl++) {
   var vb = getBoardWithValidation(lvl);
-  assert('L' + (lvl+1) + ' validated board is solvable', isBoardSolvable(vb));
+  var cfg = getLevelConfig(lvl);
+  var solvable = (lvl === 0) ? isBoardSolvable(vb) : isBoardSolvableWithAddRows(vb, cfg);
+  assert('L' + (lvl+1) + ' validated board is solvable', solvable);
   assert('L' + (lvl+1) + ' validated board has initial match', hasAnyMatch(vb));
 }
 

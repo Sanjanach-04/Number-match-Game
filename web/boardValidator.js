@@ -1,6 +1,45 @@
 "use strict";
 // boardValidator.ts - Validates board state and handles seeder retries
-function validateBoard(board) {
+function isBoardSolvableWithAddRows(board, cfg) {
+    var sim = board.map(function (c) { return { v: c.v, m: c.m }; });
+    var arUsed = 0;
+    var maxAR = 6;
+    var dryP = 0;
+    for (var pass = 0; pass < 200; pass++) {
+        // 1. Clear all possible matches greedily
+        for (var mPass = 0; mPass < sim.length; mPass++) {
+            var ms = findAllMatches(sim);
+            if (!ms.length)
+                break;
+            var pair = ms[0];
+            sim[pair[0]].m = true;
+            sim[pair[1]].m = true;
+            collapseMatchedRows(sim);
+        }
+        // Check if board is cleared (0 active cells)
+        var active = 0;
+        for (var i = 0; i < sim.length; i++)
+            if (!sim[i].m)
+                active++;
+        if (active === 0)
+            return true;
+        // 2. If no matches exist but we have active cells, we must add a row
+        if (arUsed >= maxAR) {
+            return false; // ran out of add rows
+        }
+        var res = executeAddRow(sim, cfg, dryP);
+        sim = res.board;
+        if (res.wasRescue) {
+            dryP = 0;
+        }
+        else {
+            dryP++;
+        }
+        arUsed++;
+    }
+    return false;
+}
+function validateBoard(board, cfg, lvlIndex) {
     if (!board || board.length !== 27) {
         return { valid: false, reason: 'Board must have exactly 27 cells (3×9)' };
     }
@@ -12,8 +51,15 @@ function validateBoard(board) {
     if (!hasAnyMatch(board)) {
         return { valid: false, reason: 'No initial valid match exists' };
     }
-    if (!isBoardSolvable(board)) {
-        return { valid: false, reason: 'Board is not solvable' };
+    if (lvlIndex === 0) {
+        if (!isBoardSolvable(board)) {
+            return { valid: false, reason: 'Level 1 board is not solvable directly' };
+        }
+    }
+    else {
+        if (!isBoardSolvableWithAddRows(board, cfg)) {
+            return { valid: false, reason: 'Board is not solvable with Add Row limit' };
+        }
     }
     return { valid: true, reason: 'OK' };
 }
@@ -30,11 +76,11 @@ function getBoardWithValidation(lvlIndex) {
         var transformRng = new RNG((sessionSeed + attempt * 9999) >>> 0);
         var transformedBoard = transformBoardValues(board, transformRng);
         transformedBoard = transformBoardSpatial(transformedBoard, transformRng);
-        var result = validateBoard(transformedBoard);
+        var result = validateBoard(transformedBoard, cfg, lvlIndex);
         if (result.valid)
             return transformedBoard;
     }
-    return generateLevel1Board(sessionSeed); // final fallback
+    return generateFallbackBoard(cfg, sessionSeed);
 }
 // Wrapper class for legacy engine.js seeder
 function seedBoard(lvlIndex) {
@@ -47,6 +93,7 @@ function seedBoard(lvlIndex) {
     return b;
 }
 // Global exports
+globalThis.isBoardSolvableWithAddRows = isBoardSolvableWithAddRows;
 globalThis.validateBoard = validateBoard;
 globalThis.getBoardWithValidation = getBoardWithValidation;
 globalThis.seedBoard = seedBoard;

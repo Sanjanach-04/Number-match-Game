@@ -51,7 +51,7 @@ public class BoardSeeder {
             candidateBoard = transformBoardValues(candidateBoard, transformRng);
             candidateBoard = transformBoardSpatial(candidateBoard, transformRng);
             
-            if (isSolvable(candidateBoard)) {
+            if (isSolvableWithAddRows(candidateBoard, config)) {
                 board = candidateBoard;
                 break;
             }
@@ -187,23 +187,39 @@ public class BoardSeeder {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Solvability check (greedy simulation)
+    // Solvability check with Add Rows (greedy simulation)
     // ─────────────────────────────────────────────────────────────
 
-    private static boolean isSolvable(Board board) {
+    private static boolean isSolvableWithAddRows(Board board, DifficultyConfig config) {
         Board simBoard = copyBoard(board);
-        int maxPasses = simBoard.activeCount() + 10;
+        AddRowEngine engine = new AddRowEngine(config);
 
-        for (int pass = 0; pass < maxPasses; pass++) {
-            List<int[]> matches = simBoard.findAllValidMatches();
-            if (matches.isEmpty()) break;
-            int[] match = matches.get(0);
-            Cell a = simBoard.getCellByIndex(match[0]);
-            Cell b = simBoard.getCellByIndex(match[1]);
-            simBoard.tryMatch(a, b);
+        for (int pass = 0; pass < 200; pass++) {
+            for (int mPass = 0; mPass < simBoard.getTotalCells() + 5; mPass++) {
+                List<int[]> matches = simBoard.findAllValidMatches();
+                if (matches.isEmpty()) break;
+                int[] match = matches.get(0);
+                Cell a = simBoard.getCellByIndex(match[0]);
+                Cell b = simBoard.getCellByIndex(match[1]);
+                simBoard.tryMatch(a, b);
+                engine.notifyMatchMade();
+            }
+
+            if (simBoard.isCleared()) {
+                return true;
+            }
+
+            if (engine.isExhausted()) {
+                return false;
+            }
+
+            int[] nextRow = engine.generateNextRow(simBoard);
+            if (nextRow == null) {
+                return false;
+            }
+            simBoard.addRow(nextRow);
         }
-
-        return simBoard.isCleared();
+        return false;
     }
 
     private static Board copyBoard(Board original) {
@@ -254,7 +270,41 @@ public class BoardSeeder {
     }
 
     private static Board buildTrivialBoard(DifficultyConfig config, long sessionSeed) {
-        return buildHandCraftedLevel1Board(sessionSeed);
+        SeededRandom fbRng = new SeededRandom((sessionSeed + 12345L) >>> 0);
+        List<Integer> vals = new ArrayList<>();
+        int first = 5;
+        for (int p = 0; p < 13; p++) {
+            int v = fbRng.nextIntRange(1, 9);
+            if (p == 0) first = v;
+            vals.add(v);
+            vals.add(v);
+        }
+        vals.add(first);
+        // Shuffle vals
+        for (int i = vals.size() - 1; i > 0; i--) {
+            int j = fbRng.nextInt(i + 1);
+            int temp = vals.get(i);
+            vals.set(i, vals.get(j));
+            vals.set(j, temp);
+        }
+        
+        // Put the first matching pair at index 0 and 1 to guarantee at least one initial match
+        int idxA = vals.indexOf(first);
+        int idxB = vals.indexOf(first, idxA + 1);
+        if (idxA >= 0 && idxB >= 0) {
+            int tmp = vals.get(0); vals.set(0, vals.get(idxA)); vals.set(idxA, tmp);
+            int tmp2 = vals.get(1); vals.set(1, vals.get(idxB)); vals.set(idxB, tmp2);
+        }
+
+        Board board = new Board();
+        for (int r = 0; r < INITIAL_ROWS; r++) {
+            int[] row = new int[COLS];
+            for (int c = 0; c < COLS; c++) {
+                row[c] = vals.get(r * COLS + c);
+            }
+            board.addRow(row);
+        }
+        return board;
     }
 
     private static Board transformBoardValues(Board board, SeededRandom rng) {
