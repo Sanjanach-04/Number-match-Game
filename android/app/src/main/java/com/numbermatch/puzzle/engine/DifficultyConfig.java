@@ -64,8 +64,12 @@ public class DifficultyConfig {
             case 10: return new DifficultyConfig(10, 1000151L, 0.35f, 0.68f, 0.78f, 5, 210,  9, 22, 0.63f);
             case 11: return new DifficultyConfig(11, 1000159L, 0.70f, 0.18f, 0.25f, 3,  90,  3, 6,  0.15f); // RELIEF
             default:
-                int cycle = ((level - 1) % 5) + 1;
-                return forLevel(cycle <= 3 ? 10 : 6);
+                int baseLvl = 2 + ((level - 2) % 10);
+                DifficultyConfig base = forLevel(baseLvl);
+                long newSeed = (base.seed + (long)level * 997L) & 0xFFFFFFFFL;
+                return new DifficultyConfig(level, newSeed, base.matchDensity, base.decoyRatio,
+                                            base.frictionFactor, base.idealAddRowUses, base.targetTimeSeconds,
+                                            base.minGap, base.maxGap, base.trueDecoyRatio);
         }
     }
 }

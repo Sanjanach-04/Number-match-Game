@@ -132,12 +132,38 @@ var LEVEL_CONFIG: LevelConfig[] = [
 ];
 
 function getLevelConfig(lvlIndex: number): LevelConfig {
-  return LEVEL_CONFIG[Math.min(lvlIndex, LEVEL_CONFIG.length - 1)];
+  if (lvlIndex < LEVEL_CONFIG.length) {
+    return LEVEL_CONFIG[lvlIndex];
+  }
+  // Wrap index back to level configs 1 to 10 (index 1 to 10), repeating the sawtooth difficulty curve!
+  var idx = 1 + ((lvlIndex - 1) % (LEVEL_CONFIG.length - 1));
+  var base = LEVEL_CONFIG[idx];
+  
+  return {
+    matchDensity: base.matchDensity,
+    decoyRatio: base.decoyRatio,
+    chainLength: base.chainLength,
+    averageBranching: base.averageBranching,
+    scanDistance: base.scanDistance,
+    isolatedCells: base.isolatedCells,
+    addRowDifficulty: base.addRowDifficulty,
+    targetSolveTime: base.targetSolveTime,
+    expectedAddRow: base.expectedAddRow,
+    difficultyScore: base.difficultyScore,
+    seed: (base.seed + lvlIndex * 997) >>> 0, // dynamic unique seed
+    minGap: base.minGap,
+    maxGap: base.maxGap,
+    trueDecoyRatio: base.trueDecoyRatio,
+    frictionFactor: base.frictionFactor
+  };
 }
 
-var RELIEF_LEVELS: { [key: number]: boolean } = { 5: true, 10: true };
 function isReliefLevel(lvlIndex: number): boolean {
-  return !!RELIEF_LEVELS[lvlIndex];
+  if (lvlIndex < LEVEL_CONFIG.length) {
+    return lvlIndex === 5 || lvlIndex === 10;
+  }
+  var idx = 1 + ((lvlIndex - 1) % (LEVEL_CONFIG.length - 1));
+  return idx === 5 || idx === 10;
 }
 
 // For compatibility with legacy config naming
