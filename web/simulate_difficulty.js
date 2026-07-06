@@ -216,6 +216,7 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
       // Match found and cleared
       board[foundPair[0]].m = true;
       board[foundPair[1]].m = true;
+      collapseMatchedRows(board);
       matchesSinceLastAdd++;
     } else {
       // Didn't see any match and decided to force Add Row

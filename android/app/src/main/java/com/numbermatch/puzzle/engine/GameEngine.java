@@ -92,6 +92,9 @@ public class GameEngine {
     public AddRowResult onAddRow() {
         if (state != GameState.PLAYING) return AddRowResult.failed("Game not in PLAYING state");
         if (addRowEngine.isExhausted()) return AddRowResult.failed("No Add Row uses remaining");
+        if (board.hasAnyValidMatch()) {
+            return AddRowResult.failed("Valid matches still exist. Clear existing moves first.");
+        }
 
         boolean wasRescue = addRowEngine.isInRescueMode();
         int[] newRowValues = addRowEngine.generateNextRow(board);

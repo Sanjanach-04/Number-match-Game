@@ -83,7 +83,7 @@ assert('isBoardSolvable returns boolean', typeof isBoardSolvable(unsolvable) ===
 
 /* ── addRowEngine tests ── */
 console.log('\n[addRowEngine]');
-var testBoard = generateLevel1Board();
+var testBoard = generateLevel1Board(42);
 // Simulate: match all except last pair
 var matches = findAllMatches(testBoard);
 while (matches.length > 1) {
