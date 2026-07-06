@@ -40,9 +40,9 @@ public class AddRowEngine {
 
         totalAddRowUses++;
 
-        int[] row = planNextRow(board, rng);
-
         boolean wasRescue = (addRowPressesWithoutMatch >= 2);
+        int[] row = wasRescue ? generateRescueRow(board, rng) : planNextRow(board, rng);
+
         if (wasRescue) {
             addRowPressesWithoutMatch = 0; // Reset after rescue
         } else {
@@ -162,6 +162,50 @@ public class AddRowEngine {
         }
 
         return toIntArray(bestRow);
+    }
+
+    private int[] generateRescueRow(Board board, SeededRandom activeRng) {
+        List<Cell> activeCells = board.getActiveCells();
+        List<Integer> activeVals = new ArrayList<>();
+        for (Cell cell : activeCells) {
+            activeVals.add(cell.value);
+        }
+        if (activeVals.isEmpty()) {
+            for (int i = 1; i <= 9; i++) {
+                activeVals.add(i);
+            }
+        }
+
+        int v = activeVals.get(activeRng.nextInt(activeVals.size()));
+        int w = v;
+        int attempts = 0;
+        while (w == v && attempts < 20) {
+            int potentialW = activeVals.get(activeRng.nextInt(activeVals.size()));
+            if (potentialW != v) {
+                w = potentialW;
+                break;
+            }
+            attempts++;
+        }
+
+        int[] row = new int[9];
+        row[0] = v;
+        row[1] = v;
+        row[2] = w;
+        row[3] = w;
+
+        int pVal = activeVals.get(activeRng.nextInt(activeVals.size()));
+        row[4] = pVal;
+        row[5] = getCompVal(pVal);
+
+        int pVal2 = activeVals.get(activeRng.nextInt(activeVals.size()));
+        row[6] = pVal2;
+        row[7] = getCompVal(pVal2);
+
+        int pVal3 = activeVals.get(activeRng.nextInt(activeVals.size()));
+        row[8] = getCompVal(pVal3);
+
+        return row;
     }
 
     private int getCompVal(int val) {

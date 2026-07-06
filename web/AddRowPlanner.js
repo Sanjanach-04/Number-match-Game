@@ -120,14 +120,15 @@ function boardSeed(board) {
 function executeAddRow(board, cfg, dryPresses) {
     var seed = boardSeed(board);
     var rng = new RNG(seed);
-    var newRow = planNextRow(board, cfg, rng);
+    var wasRescue = shouldRescue(dryPresses);
+    var newRow = wasRescue ? generateRescueRow(board, rng) : planNextRow(board, cfg, rng);
     var newBoard = board.concat(newRow.map(function (v) { return { v: v, m: false }; }));
     var stragglers = findStragglers(board);
     var reportVal = stragglers.length > 0 ? stragglers[0] : (newRow.length > 0 ? newRow[0] : 5);
     return {
         board: newBoard,
         val: reportVal,
-        wasRescue: shouldRescue(dryPresses)
+        wasRescue: wasRescue
     };
 }
 // Wrapper class for legacy game.js instantiation
