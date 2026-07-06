@@ -152,13 +152,8 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-c
     </div>
     <div class="ov-ti" style="color:#f5a623; font-weight:900;">LEVEL CLEARED! 🎉</div>
     <div class="win-perf">PERFECT ROUND!</div>
-    <div class="win-stats">
-      <div class="stat-card">
-        <span class="stat-ic">🕒</span>
-        <span class="stat-lbl">TIME</span>
-        <span class="stat-val" id="wTime">00:00</span>
-      </div>
-      <div class="stat-card">
+    <div class="win-stats" style="justify-content: center;">
+      <div class="stat-card" style="max-width: 160px; width: 100%;">
         <span class="stat-ic">👑</span>
         <span class="stat-lbl">SCORE</span>
         <span class="stat-val" id="wScore">0</span>
@@ -213,7 +208,7 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-c
 var MAXAR = 6; /* Max Add Row presses per level */
 
 /* ── Game state ── */
-var G = { board:[], lvl:0, sel:-1, arUsed:0, dryP:0, msAdd:0, hA:-1, hB:-1, autoT:null, score:0, best:0, timeSec:0, timerT:null, maxUnlocked:0 };
+var G = { board:[], lvl:0, sel:-1, arUsed:0, dryP:0, msAdd:0, hA:-1, hB:-1, autoT:null, score:0, best:0, maxUnlocked:0 };
 var storedMax = localStorage.getItem('sumlink_max_unlocked');
 G.maxUnlocked = storedMax ? parseInt(storedMax) : 0;
 
@@ -227,9 +222,8 @@ function gc(i){ return ge('c'+i); }
 /* ── Start level ── */
 function go(idx){
   if(G.autoT){ clearInterval(G.autoT); G.autoT=null; }
-  if(G.timerT){ clearInterval(G.timerT); G.timerT=null; }
   G.lvl=idx; G.sel=-1; G.arUsed=0; G.dryP=0; G.msAdd=0; G.hA=-1; G.hB=-1;
-  G.score=0; G.timeSec=0;
+  G.score=0;
   G.board = getBoardWithValidation(idx);  /* deterministic — same board every run */
   
   // Load best score
@@ -239,16 +233,10 @@ function go(idx){
   ge('lLv').textContent = 'Level '+(idx+1);
   hov('oWin'); hov('oOver'); hov('oConfirm');
   render(); badges(); scr('sG'); ge('sa').scrollTop = 0;
-  
-  // Start play timer
-  G.timerT = setInterval(function() {
-    G.timeSec++;
-  }, 1000);
 }
 function restart(){ go(G.lvl); }
 function menu(){
   if(G.autoT){ clearInterval(G.autoT); G.autoT=null; }
-  if(G.timerT){ clearInterval(G.timerT); G.timerT=null; }
   hov('oWin'); hov('oOver'); hov('oConfirm'); scr('sLS');
 }
 
@@ -347,7 +335,6 @@ function tap(i){
       badges();
       if(isBoardCleared(G.board)){ showWin(); return; }
       if(!hasAnyMatch(G.board) && G.arUsed>=MAXAR){
-        if(G.timerT){ clearInterval(G.timerT); G.timerT=null; }
         sov('oOver'); return; 
       }
     },380);
@@ -426,13 +413,7 @@ function doAddActual(){
 /* ── Win ── */
 function showWin(){
   sWin();
-  if(G.timerT){ clearInterval(G.timerT); G.timerT=null; }
   
-  var mins = Math.floor(G.timeSec / 60);
-  var secs = G.timeSec % 60;
-  var timeStr = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-  
-  ge('wTime').textContent = timeStr;
   ge('wScore').textContent = G.score;
   
   var nx=G.lvl+1;
