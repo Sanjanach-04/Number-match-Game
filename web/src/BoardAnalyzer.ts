@@ -180,6 +180,26 @@ function analyzeBoard(board: Cell[]): { active: number[]; freq: { [key: number]:
   };
 }
 
+function collapseMatchedRows(board: Cell[]): boolean {
+  var rows = Math.floor(board.length / COLS);
+  var collapsed = false;
+  for (var r = rows - 1; r >= 0; r--) {
+    var allMatched = true;
+    for (var c = 0; c < COLS; c++) {
+      var idx = r * COLS + c;
+      if (!board[idx].m) {
+        allMatched = false;
+        break;
+      }
+    }
+    if (allMatched) {
+      board.splice(r * COLS, COLS);
+      collapsed = true;
+    }
+  }
+  return collapsed;
+}
+
 // Global exports
 (globalThis as any).COLS = COLS;
 (globalThis as any).valuesMatch = valuesMatch;
@@ -197,3 +217,4 @@ function analyzeBoard(board: Cell[]): { active: number[]; freq: { [key: number]:
 (globalThis as any).isCleared = isCleared;
 (globalThis as any).analyzeBoard = analyzeBoard;
 (globalThis as any).hasAnyMatch_compat = hasAnyMatch_compat;
+(globalThis as any).collapseMatchedRows = collapseMatchedRows;

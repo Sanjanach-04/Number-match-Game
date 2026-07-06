@@ -17,6 +17,8 @@ interface Cell {
   m: boolean;
 }
 
+declare function collapseMatchedRows(board: Cell[]): boolean;
+
 // canMatchWithMask needs valuesMatch from BoardAnalyzer — loaded before this script.
 var COLS = 9;
 
@@ -31,6 +33,7 @@ function _greedyRun(board: Cell[], pickFn: (ms: [number,number][]) => [number,nu
     var pair = pickFn(ms);
     sim[pair[0]].m = true;
     sim[pair[1]].m = true;
+    collapseMatchedRows(sim);
   }
   var rem = 0;
   for (var i = 0; i < sim.length; i++) if (!sim[i].m) rem++;
@@ -121,6 +124,7 @@ function solveBoard(board: Cell[]): [number,number][] | null {
       sim[pair[0]].m = true;
       sim[pair[1]].m = true;
       path.push(pair);
+      collapseMatchedRows(sim);
     }
     var rem = 0;
     for (var i = 0; i < sim.length; i++) if (!sim[i].m) rem++;

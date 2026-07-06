@@ -89,12 +89,13 @@ var matches = findAllMatches(testBoard);
 while (matches.length > 1) {
   testBoard[matches[0][0]].m = true;
   testBoard[matches[0][1]].m = true;
+  collapseMatchedRows(testBoard);
   matches = findAllMatches(testBoard);
 }
 var cfg1 = getLevelConfig(0);
 var addResult = executeAddRow(testBoard, cfg1, 0);
 assert('executeAddRow returns board', Array.isArray(addResult.board));
-assert('board grows correctly based on orphans', addResult.board.length === 30);
+assert('board grows correctly based on orphans', addResult.board.length === 12);
 assert('injected value is 1–9', addResult.val >= 1 && addResult.val <= 9);
 
 /* ── Intelligent Minimal Add Row tests ── */

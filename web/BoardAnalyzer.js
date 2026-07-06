@@ -174,6 +174,25 @@ function analyzeBoard(board) {
         isolated: isolated
     };
 }
+function collapseMatchedRows(board) {
+    var rows = Math.floor(board.length / COLS);
+    var collapsed = false;
+    for (var r = rows - 1; r >= 0; r--) {
+        var allMatched = true;
+        for (var c = 0; c < COLS; c++) {
+            var idx = r * COLS + c;
+            if (!board[idx].m) {
+                allMatched = false;
+                break;
+            }
+        }
+        if (allMatched) {
+            board.splice(r * COLS, COLS);
+            collapsed = true;
+        }
+    }
+    return collapsed;
+}
 // Global exports
 globalThis.COLS = COLS;
 globalThis.valuesMatch = valuesMatch;
@@ -191,3 +210,4 @@ globalThis.isBoardCleared = isBoardCleared;
 globalThis.isCleared = isCleared;
 globalThis.analyzeBoard = analyzeBoard;
 globalThis.hasAnyMatch_compat = hasAnyMatch_compat;
+globalThis.collapseMatchedRows = collapseMatchedRows;

@@ -26,6 +26,7 @@ function _greedyRun(board, pickFn) {
         var pair = pickFn(ms);
         sim[pair[0]].m = true;
         sim[pair[1]].m = true;
+        collapseMatchedRows(sim);
     }
     var rem = 0;
     for (var i = 0; i < sim.length; i++)
@@ -129,6 +130,7 @@ function solveBoard(board) {
             sim[pair[0]].m = true;
             sim[pair[1]].m = true;
             path.push(pair);
+            collapseMatchedRows(sim);
         }
         var rem = 0;
         for (var i = 0; i < sim.length; i++)

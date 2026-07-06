@@ -51,6 +51,7 @@ function autoPlay(initialBoard, cfg, maxAddRows) {
       for (var i = 0; i < path.length; i++) {
         board[path[i][0]].m = true;
         board[path[i][1]].m = true;
+        collapseMatchedRows(board);
       }
       matchesSinceLastAdd += path.length;
       dryPresses = 0;

@@ -164,7 +164,34 @@ public class Board {
         if (!isValidMatch(a, b)) return false;
         a.markMatched();
         b.markMatched();
+        collapseMatchedRows();
         return true;
+    }
+
+    public boolean collapseMatchedRows() {
+        boolean collapsed = false;
+        for (int r = rowCount - 1; r >= 0; r--) {
+            boolean allMatched = true;
+            for (int c = 0; c < COLS; c++) {
+                Cell cell = getCell(r, c);
+                if (cell == null || !cell.isMatched()) {
+                    allMatched = false;
+                    break;
+                }
+            }
+            if (allMatched) {
+                int startIndex = r * COLS;
+                for (int i = 0; i < COLS; i++) {
+                    cells.remove(startIndex);
+                }
+                for (int i = startIndex; i < cells.size(); i++) {
+                    cells.get(i).row--;
+                }
+                rowCount--;
+                collapsed = true;
+            }
+        }
+        return collapsed;
     }
 
     // ─────────────────────────────────────────────────────────────

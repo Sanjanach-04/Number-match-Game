@@ -219,6 +219,10 @@ function tap(i){
     if(eb){ eb.classList.add('fok'); setTimeout(function(){rcell(b);},360); }
     badges();
     setTimeout(function(){
+      var collapsed = collapseMatchedRows(G.board);
+      if(collapsed) {
+        render();
+      }
       if(isBoardCleared(G.board)){ showWin(); return; }
       if(!hasAnyMatch(G.board) && G.arUsed>=MAXAR){ sov('oOver'); return; }
     },380);
