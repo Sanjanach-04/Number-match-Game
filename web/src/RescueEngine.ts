@@ -1,71 +1,132 @@
-// RescueEngine.ts - Detects player frustration and generates rescue rows (v3 sync)
+// RescueEngine.ts - Deterministic complement-based rescue generation (v4)
+// NO random number generation. All rescue rows are derived purely from board state.
 
-interface Cell {
-  v: number;
-  m: boolean;
-}
+// Note: Cell interface declared in BoardAnalyzer.ts
 
-// Complement helper (same-value is easy, sum-10 is standard)
+// Complement helper: returns the matching partner value under game rules
 function comp(v: number): number {
   return v === 5 ? 5 : (10 - v);
 }
 
-// Returns true if player is in rescue state (2 or more dry presses)
+// Returns true if player is stuck (2+ consecutive Add Row presses with no match in between)
 function shouldRescue(dryPresses: number): boolean {
   return dryPresses >= 2;
 }
 
-// Generates a rescue row of 9 cells
-// Obvious matches are created by placing two adjacent same-value pairs at the front of the row (V, V, W, W at positions 0-3)
-// The remaining positions are filled with matchable helpers to avoid any pure decoys.
-function generateRescueRow(board: Cell[], rng: any): number[] {
+// ─── Board State Analysis ──────────────────────────────────────────────────────
+
+interface BoardAnalysis {
+  activeVals: number[];           // All active (unmatched) values
+  strandedVals: number[];         // Values with no reachable match partner (value or complement absent)
+  matchedVals: number[];          // Values that already have at least one reachable match
+  orphanVals: number[];           // Values whose complement doesn't exist anywhere on board
+  alreadySolvable: boolean;       // True if board can be cleared with no add-row
+  hasImmediateMatch: boolean;     // True if at least one match is currently playable
+}
+
+function analyzeRescueState(board: Cell[]): BoardAnalysis {
+  // Collect all active values
   var activeVals: number[] = [];
   for (var i = 0; i < board.length; i++) {
+    if (!board[i].m) activeVals.push(board[i].v);
+  }
+
+  // Count frequency of each value on board
+  var freq: { [v: number]: number } = {};
+  for (var i = 1; i <= 9; i++) freq[i] = 0;
+  for (var i = 0; i < activeVals.length; i++) freq[activeVals[i]]++;
+
+  // A value is "orphaned" if neither it nor its complement exists elsewhere on the board
+  var orphanVals: number[] = [];
+  var seen: { [v: number]: boolean } = {};
+  for (var i = 0; i < activeVals.length; i++) {
+    var v = activeVals[i];
+    if (seen[v]) continue;
+    seen[v] = true;
+    var c = comp(v);
+    // Check if this value has a partner (same value or complement)
+    var partnerExists = false;
+    for (var j = 0; j < activeVals.length; j++) {
+      if (activeVals[j] === v && j !== activeVals.indexOf(v)) { partnerExists = true; break; }
+      if (activeVals[j] === c) { partnerExists = true; break; }
+    }
+    if (!partnerExists) orphanVals.push(v);
+  }
+
+  // Find which active cells are in a currently reachable match
+  var allMatches = findAllMatches(board);
+  var matchedIndices: { [i: number]: boolean } = {};
+  for (var i = 0; i < allMatches.length; i++) {
+    matchedIndices[allMatches[i][0]] = true;
+    matchedIndices[allMatches[i][1]] = true;
+  }
+
+  var matchedVals: number[] = [];
+  var strandedVals: number[] = [];
+  for (var i = 0; i < board.length; i++) {
     if (!board[i].m) {
-      activeVals.push(board[i].v);
+      if (matchedIndices[i]) {
+        matchedVals.push(board[i].v);
+      } else {
+        strandedVals.push(board[i].v);
+      }
     }
   }
-  if (activeVals.length === 0) {
-    activeVals = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  var hasImmediateMatch = allMatches.length > 0;
+  var alreadySolvable = hasImmediateMatch && isBoardSolvable(board);
+
+  return {
+    activeVals,
+    strandedVals,
+    matchedVals,
+    orphanVals,
+    alreadySolvable,
+    hasImmediateMatch
+  };
+}
+
+// ─── Deterministic Rescue Row Generation ─────────────────────────────────────
+// Generates a MINIMAL rescue row based entirely on board state.
+// Never uses random numbers — fully deterministic.
+function generateRescueRow(board: Cell[], _rng?: any): number[] {
+  var analysis = analyzeRescueState(board);
+
+  // Case 1: Board is empty — use a safe [5, 5] pair
+  if (analysis.activeVals.length === 0) {
+    return [5, 5];
   }
-  
-  var v = activeVals[rng.int(activeVals.length)];
-  var w = v;
-  var attempts = 0;
-  while (w === v && attempts < 20) {
-    var potentialW = activeVals[rng.int(activeVals.length)];
-    if (potentialW !== v) {
-      w = potentialW;
-      break;
+
+  // Case 2: Board already solvable — no row needed
+  if (analysis.alreadySolvable) {
+    return [];
+  }
+
+  // Case 3: Generate complements for stranded cells
+  // Deduplicate: only generate one complement per unique stranded value
+  var seen: { [v: number]: boolean } = {};
+  var rescueRow: number[] = [];
+
+  for (var i = 0; i < analysis.strandedVals.length; i++) {
+    var v = analysis.strandedVals[i];
+    var c = comp(v);
+    if (!seen[c]) {
+      seen[c] = true;
+      rescueRow.push(c);
     }
-    attempts++;
   }
-  
-  var row: number[] = new Array(9);
-  row[0] = v;
-  row[1] = v;
-  row[2] = w;
-  row[3] = w;
-  
-  // Fill remaining cells 4-8 with helpers (no pure decoys)
-  // 4 & 5 form a sum-to-10 or same-value pair
-  var pVal = activeVals[rng.int(activeVals.length)];
-  row[4] = pVal;
-  row[5] = comp(pVal);
-  
-  // 6 & 7 form another pair
-  var pVal2 = activeVals[rng.int(activeVals.length)];
-  row[6] = pVal2;
-  row[7] = comp(pVal2);
-  
-  // 8 is complement of another active cell
-  var pVal3 = activeVals[rng.int(activeVals.length)];
-  row[8] = comp(pVal3);
-  
-  return row;
+
+  // Case 4: If no stranded vals but still not solvable, rescue the last active cell
+  if (rescueRow.length === 0) {
+    var last = analysis.activeVals[analysis.activeVals.length - 1];
+    rescueRow.push(comp(last));
+  }
+
+  return rescueRow;
 }
 
 // Global exports
 (globalThis as any).comp = comp;
 (globalThis as any).shouldRescue = shouldRescue;
+(globalThis as any).analyzeRescueState = analyzeRescueState;
 (globalThis as any).generateRescueRow = generateRescueRow;
