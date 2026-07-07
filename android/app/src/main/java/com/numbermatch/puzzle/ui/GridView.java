@@ -24,6 +24,8 @@ public class GridView extends ViewGroup {
 
     private Board board;
     private int selectedIndex = -1;
+    private int highlightA = -1;
+    private int highlightB = -1;
     private CellTapListener tapListener;
 
     private int cellSize;
@@ -59,6 +61,18 @@ public class GridView extends ViewGroup {
 
     public void setSelectedIndex(int index) {
         this.selectedIndex = index;
+        updateCellStates();
+    }
+
+    public void setHighlights(int a, int b) {
+        this.highlightA = a;
+        this.highlightB = b;
+        updateCellStates();
+    }
+
+    public void clearHighlights() {
+        this.highlightA = -1;
+        this.highlightB = -1;
         updateCellStates();
     }
 
@@ -102,6 +116,10 @@ public class GridView extends ViewGroup {
                 tv.setBackgroundResource(R.drawable.cell_selected);
                 tv.setTextColor(0xFFFFFFFF);
                 tv.setAlpha(1.0f);
+            } else if (i == highlightA || i == highlightB) {
+                tv.setBackgroundResource(R.drawable.cell_highlighted);
+                tv.setTextColor(0xFF1A1A2E);
+                tv.setAlpha(1.0f);
             } else {
                 tv.setBackgroundResource(R.drawable.cell_normal);
                 tv.setAlpha(1.0f);
@@ -142,6 +160,12 @@ public class GridView extends ViewGroup {
                 tv.setText(String.valueOf(cell.value));
                 tv.setBackgroundResource(R.drawable.cell_selected);
                 tv.setTextColor(0xFFFFFFFF);
+                tv.setAlpha(1.0f);
+                tv.setPaintFlags(tv.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+            } else if (i == highlightA || i == highlightB) {
+                tv.setText(String.valueOf(cell.value));
+                tv.setBackgroundResource(R.drawable.cell_highlighted);
+                tv.setTextColor(0xFF1A1A2E);
                 tv.setAlpha(1.0f);
                 tv.setPaintFlags(tv.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
             } else {

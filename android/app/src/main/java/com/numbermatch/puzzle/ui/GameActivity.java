@@ -15,6 +15,8 @@ import com.numbermatch.puzzle.engine.GameEngine;
 import com.numbermatch.puzzle.engine.GameEngine.AddRowResult;
 import com.numbermatch.puzzle.engine.GameEngine.MatchResult;
 
+import java.util.List;
+
 /**
  * GameActivity - Main game screen.
  *
@@ -137,12 +139,21 @@ public class GameActivity extends AppCompatActivity implements GameEngine.GameEv
             isScanning = false;
             updateAddRowButton();
 
-            if (engine.getBoard().hasAnyValidMatch()) {
+            List<int[]> validMatches = engine.getBoard().findAllValidMatches();
+            if (!validMatches.isEmpty()) {
+                int[] best = validMatches.get(0);
+                gridView.setHighlights(best[0], best[1]);
+
                 new AlertDialog.Builder(GameActivity.this)
                         .setTitle("Matches Available!")
                         .setMessage("Valid matches still exist. Are you sure you want to add a new row?")
-                        .setPositiveButton("Yes, Add Row", (dialog, which) -> performAddRow(true))
-                        .setNegativeButton("No, Keep Looking", null)
+                        .setPositiveButton("Yes, Add Row", (dialog, which) -> {
+                            gridView.clearHighlights();
+                            performAddRow(true);
+                        })
+                        .setNegativeButton("No, Keep Looking", (dialog, which) -> {
+                            gridView.clearHighlights();
+                        })
                         .setCancelable(false)
                         .show();
             } else {

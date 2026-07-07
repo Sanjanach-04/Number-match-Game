@@ -399,7 +399,11 @@ function doAdd(){
     ge('bRst').style.pointerEvents = 'auto';
     ge('grid').classList.remove('grid-scanning');
     
-    if(hasAnyMatch(G.board)){
+    var pairs = findAllMatches(G.board);
+    if(pairs.length > 0){
+      hClear();
+      var best = pairs[0];
+      G.hA = best[0]; G.hB = best[1]; hApply();
       sov('oConfirm');
     } else {
       doAddActual();
@@ -520,8 +524,8 @@ ge('bNext').onclick  = function(){ hov('oWin'); if(G.autoT){clearInterval(G.auto
 ge('bWM').onclick    = menu;
 ge('bRetry').onclick = restart;
 ge('bOM').onclick    = menu;
-ge('bCY').onclick    = function(){ hov('oConfirm'); doAddActual(); };
-ge('bCN').onclick    = function(){ hov('oConfirm'); };
+ge('bCY').onclick    = function(){ hov('oConfirm'); hClear(); G.hA=-1; G.hB=-1; doAddActual(); };
+ge('bCN').onclick    = function(){ hov('oConfirm'); hClear(); G.hA=-1; G.hB=-1; };
 ge('hHelp').onclick  = function(){
   alert("SumLink Match Rules:\n\n1. Match identical numbers (e.g. 5 & 5) or pairs summing to 10 (e.g. 3 & 7).\n2. Numbers must be adjacent: horizontally, vertically, diagonally, or wrapping from end of one row to start of next.\n3. Add new rows if stuck, up to 6 times per level.\n4. Clear the board to clear the level!");
 };
