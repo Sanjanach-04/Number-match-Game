@@ -133,7 +133,7 @@ var solvableBoard = [
 ];
 var resSolvable = executeAddRow(solvableBoard, cfg1, 0);
 var addedSolvable = resSolvable.board.slice(2).map(function(c){return c.v;});
-assert('Already solvable board [3, 7] generates empty row', addedSolvable.length === 0);
+assert('Already solvable board [3, 7] generates minimal rescue pair', addedSolvable.length === 2);
 
 // Test 4: Deadlock scenario
 var deadlockBoard = [
@@ -157,6 +157,19 @@ assert('Endgame board [8, 3] generates correct complements [2, 7]',
        addedEndgame.length === 2 &&
        addedEndgame.indexOf(2) !== -1 &&
        addedEndgame.indexOf(7) !== -1);
+
+// Test 6: Single remaining digit on a 3-row board close to completion (only 1 active cell)
+var largeCloseToCompletionBoard = [];
+for (var i = 0; i < 27; i++) {
+  largeCloseToCompletionBoard.push({v: 1, m: true});
+}
+largeCloseToCompletionBoard[13] = {v: 7, m: false}; // only one active cell '7' remaining
+var resClose = executeAddRow(largeCloseToCompletionBoard, cfg1, 0);
+var addedCells = resClose.board.slice(27);
+var activeAdded = addedCells.filter(function(c){return !c.m;});
+var matchedAdded = addedCells.filter(function(c){return c.m;});
+assert('Close to completion board only generates active complements without active padding', 
+       activeAdded.length === 1 && activeAdded[0].v === 3 && matchedAdded.length === 8);
 
 /* ── Rescue mechanic test ── */
 console.log('\n[Rescue Mechanic]');

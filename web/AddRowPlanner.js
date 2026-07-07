@@ -76,10 +76,6 @@ function buildMinimalRescueRow(analysis) {
     if (analysis.activeVals.length === 0) {
         return [5, 5];
     }
-    // Board already solvable → no row needed
-    if (analysis.isSolvable) {
-        return [];
-    }
     // ── Key algorithm: REVERSED complement order ──────────────────────────────
     // Placing the complement of the LAST stranded cell FIRST means it sits
     // ADJACENT to the board's last cell → guaranteed immediate match.
@@ -202,7 +198,7 @@ function boardSeed(board) {
 function planNextRow(board, cfg, _rng) {
     var analysis = scanBoard(board);
     // Level 1 column-aware mode (keeps game friendly for tutorial level)
-    if (cfg.difficultyScore === 1 && board.length >= 9) {
+    if (cfg.difficultyScore === 1 && board.length >= 9 && analysis.activeVals.length > 9) {
         var cols = {};
         for (var c = 0; c < 9; c++)
             cols[c] = [];
@@ -276,14 +272,29 @@ function executeAddRow(board, cfg, dryPresses, totalUses) {
         }
     }
     // Step 5: Pad to 9 cells for full-grid boards (keeps UI consistent)
+    var shouldPad = true;
+    if (analysis.activeVals.length <= 9) {
+        shouldPad = false; // close to completion -> no padding
+    }
+    if (newRow.length <= 1) {
+        shouldPad = false; // only 1 complement required -> no padding
+    }
+    var activeNewRow = newRow.slice();
+    if (shouldPad && board.length >= 9) {
+        activeNewRow = padRowToGridWidth(activeNewRow, board);
+    }
+    // Pad the rest of the row with matched (inactive) cells to keep grid alignment
+    var matchedPadding = [];
     if (board.length >= 9) {
-        newRow = padRowToGridWidth(newRow, board);
+        while (activeNewRow.length + matchedPadding.length < 9) {
+            matchedPadding.push(1); // placeholder value
+        }
     }
     // Build final board
-    var newBoard = board.concat(newRow.map(function (v) { return { v: v, m: false }; }));
+    var newBoard = board.concat(activeNewRow.map(function (v) { return { v: v, m: false }; })).concat(matchedPadding.map(function (v) { return { v: v, m: true }; }));
     // Report value: prefer first straggler value (single-cell-row), else first new value
     var stragglers = findStragglers(board);
-    var reportVal = stragglers.length > 0 ? stragglers[0] : (newRow.length > 0 ? newRow[0] : 5);
+    var reportVal = stragglers.length > 0 ? stragglers[0] : (activeNewRow.length > 0 ? activeNewRow[0] : 5);
     return {
         board: newBoard,
         val: reportVal,

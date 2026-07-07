@@ -40,7 +40,7 @@ public class AddRowEngine {
 
         totalAddRowUses++;
 
-        boolean wasRescue = (addRowPressesWithoutMatch >= 2);
+        boolean wasRescue = (addRowPressesWithoutMatch >= 2) && (board.activeCount() > 9);
         int[] row = wasRescue ? generateRescueRow(board, rng) : planNextRow(board, rng);
 
         if (wasRescue) {
@@ -49,7 +49,47 @@ public class AddRowEngine {
             addRowPressesWithoutMatch++;
         }
 
+        boolean shouldPad = (board.activeCount() > 9) && (row.length > 1);
+        if (shouldPad && board.getTotalCells() >= 9) {
+            row = padRowToGridWidth(row, board, rng);
+        }
+
         return row;
+    }
+
+    private int[] padRowToGridWidth(int[] row, Board board, SeededRandom activeRng) {
+        if (row.length >= 9) return row;
+
+        List<Integer> padded = new ArrayList<>();
+        for (int v : row) padded.add(v);
+
+        List<Cell> activeCells = board.getActiveCells();
+        List<Integer> activeVals = new ArrayList<>();
+        for (Cell cell : activeCells) {
+            activeVals.add(cell.value);
+        }
+
+        int pivotIdx = 0;
+        while (padded.size() < 9) {
+            if (activeVals.isEmpty()) {
+                padded.add(5);
+                if (padded.size() < 9) padded.add(5);
+                continue;
+            }
+
+            int pivot = activeVals.get(pivotIdx % activeVals.size());
+            int c = getCompVal(pivot);
+            pivotIdx++;
+
+            if (padded.size() <= 7) {
+                padded.add(pivot);
+                if (padded.size() < 9) padded.add(c);
+            } else {
+                padded.add(c);
+            }
+        }
+
+        return toIntArray(padded);
     }
 
     public void notifyMatchMade() {
@@ -103,19 +143,14 @@ public class AddRowEngine {
         boolean hasMatches = !board.findAllValidMatches().isEmpty();
 
         if (required.isEmpty()) {
-            if (!currentSolvable || !hasMatches) {
-                if (!activeCells.isEmpty()) {
-                    Cell lastActive = activeCells.get(activeCells.size() - 1);
-                    int partner = getCompVal(lastActive.value);
-                    required.add(partner);
-                    required.add(lastActive.value);
-                } else {
-                    required.add(5);
-                    required.add(5);
-                }
+            if (!activeCells.isEmpty()) {
+                Cell lastActive = activeCells.get(activeCells.size() - 1);
+                int partner = getCompVal(lastActive.value);
+                required.add(partner);
+                required.add(lastActive.value);
             } else {
-                // Already solvable and has matches! No Add Row required.
-                return new int[0];
+                required.add(5);
+                required.add(5);
             }
         }
 
