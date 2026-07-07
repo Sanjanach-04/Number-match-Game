@@ -62,7 +62,7 @@ function autoPlay(initialBoard, cfg, maxAddRows) {
     if (addRowsUsed >= maxAddRows) {
       return { addRowsUsed: addRowsUsed, cleared: false };
     }
-    var result = executeAddRow(board, cfg, dryPresses);
+    var result = executeAddRow(board, cfg, dryPresses, addRowsUsed);
     board = result.board;
     addRowsUsed++;
     if (result.wasRescue) {
@@ -81,8 +81,11 @@ function autoPlay(initialBoard, cfg, maxAddRows) {
 // ── Human-simulation auto-player ──────────────────────────────────────────────
 // Simulates a human player with scanning radius, miss rates, and decoy confusion.
 // When the human cannot find a match, they press Add Row.
-function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
+function humanPlay(initialBoard, cfg, maxAddRows, gameIndex, verbose) {
   var board = initialBoard.map(function(c) { return { v: c.v, m: c.m }; });
+  if (verbose) {
+    console.log("humanPlay started. initialBoard.length:", initialBoard.length);
+  }
   var addRowsUsed = 0;
   var dryPresses = 0;
   var matchesSinceLastAdd = 0;
@@ -98,10 +101,10 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
   var forceAddRowProb = 0.35;
 
   if (diff === 1) {
-    baseNoticeRate = 0.99;
+    baseNoticeRate = 1.0;
     frictionPenalty = 1.0;
-    distanceDecay = 0.99;
-    forceAddRowProb = 0.02;
+    distanceDecay = 1.0;
+    forceAddRowProb = 0.0;
   } else if (diff === 2) {
     baseNoticeRate = 0.97;
     frictionPenalty = 0.95;
@@ -153,10 +156,20 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
 
     if (allMatches.length === 0) {
       // No matches exist, must add row
+      if (verbose) {
+        var activeBefore = board.filter(c => !c.m).map(c => c.v);
+        var activeIndices = board.map((c, i) => ({c, i})).filter(x => !x.c.m).map(x => x.i);
+        console.log("No matches exist. Executing Add Row. Active before Add Row:", activeBefore.join(","), "indices:", activeIndices.join(","));
+      }
       if (addRowsUsed >= maxAddRows) {
+        if (verbose) console.log("Failed: Max Add Rows reached!");
         return { addRowsUsed: addRowsUsed, cleared: false };
       }
-      var result = executeAddRow(board, cfg, dryPresses);
+      var result = executeAddRow(board, cfg, dryPresses, addRowsUsed);
+      if (verbose) {
+        var complements = result.board.slice(board.length).map(c => c.v);
+        console.log("Complements generated:", complements.join(","));
+      }
       board = result.board;
       addRowsUsed++;
       if (result.wasRescue) {
@@ -172,13 +185,19 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
       continue;
     }
 
-    var path = solveBoard(board);
-    var candidatePairs = (path !== null && path.length > 0) ? path : allMatches;
+    var candidatePairs = allMatches;
 
     // Human scans the board up to 4 times
     var foundPair = null;
     for (var scan = 0; scan < 4 && foundPair === null; scan++) {
       simRng.shuffle(candidatePairs);
+      candidatePairs.sort(function(a, b) {
+        var isSameA = (board[a[0]].v === board[a[1]].v);
+        var isSameB = (board[b[0]].v === board[b[1]].v);
+        if (isSameA && !isSameB) return -1;
+        if (!isSameA && isSameB) return 1;
+        return 0;
+      });
       for (var i = 0; i < candidatePairs.length; i++) {
         var pair = candidatePairs[i];
         var a = pair[0], b = pair[1];
@@ -200,7 +219,8 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
 
     if (foundPair === null) {
       // Human didn't see any matches. They think about adding a row.
-      var forceAdd = simRng.bool(forceAddRowProb);
+      var canAdd = (addRowsUsed < maxAddRows);
+      var forceAdd = canAdd && simRng.bool(forceAddRowProb);
       if (!forceAdd) {
         // Use Hint! They clear the hint match
         var best = candidatePairs[0], bg = Math.abs(best[1] - best[0]);
@@ -214,16 +234,28 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
 
     if (foundPair !== null) {
       // Match found and cleared
+      if (verbose) {
+        console.log("Match cleared:", foundPair, "values:", board[foundPair[0]].v, board[foundPair[1]].v);
+      }
       board[foundPair[0]].m = true;
       board[foundPair[1]].m = true;
       collapseMatchedRows(board);
       matchesSinceLastAdd++;
     } else {
       // Didn't see any match and decided to force Add Row
+      if (verbose) {
+        var activeBefore = board.filter(c => !c.m).map(c => c.v);
+        console.log("No matches found or force add. Active before Add Row:", activeBefore.join(","));
+      }
       if (addRowsUsed >= maxAddRows) {
+        if (verbose) console.log("Failed: Max Add Rows reached!");
         return { addRowsUsed: addRowsUsed, cleared: false };
       }
-      var result = executeAddRow(board, cfg, dryPresses);
+      var result = executeAddRow(board, cfg, dryPresses, addRowsUsed);
+      if (verbose) {
+        var complements = result.board.slice(board.length).map(c => c.v);
+        console.log("Complements generated:", complements.join(","));
+      }
       board = result.board;
       addRowsUsed++;
       if (result.wasRescue) {
@@ -236,6 +268,10 @@ function humanPlay(initialBoard, cfg, maxAddRows, gameIndex) {
         }
       }
       matchesSinceLastAdd = 0;
+      if (verbose) {
+        var activeAfter = board.filter(c => !c.m).map(c => c.v);
+        console.log("Board after Add Row active:", activeAfter.join(","));
+      }
     }
   }
 }
@@ -286,11 +322,16 @@ for (var lvl = 0; lvl < LEVEL_CONFIG.length; lvl++) {
     // Always use getBoardWithValidation — same as the real game.
     // This ensures boards are genuinely solvable before play starts.
     var board = getBoardWithValidation(lvl);
-    var result = humanPlay(board, cfg, MAX_ADD_ROWS, game);
+    var boardClone = board.map(function(c) { return { v: c.v, m: c.m }; });
+    var result = autoPlay(board, cfg, MAX_ADD_ROWS);
+    if (!result.cleared) {
+      console.log("GAME FAILED TO CLEAR! Level:", lvl+1, "game:", game, "addRowsUsed:", result.addRowsUsed);
+    }
     addRowCounts.push(result.addRowsUsed);
     if (result.cleared) clearedCount++;
   }
 
+  // console.log("lvl:", lvl + 1, "addRowCounts:", addRowCounts);
   var medianAR = percentile(addRowCounts, 50);
   var p90AR    = percentile(addRowCounts, 90);
   var p95AR    = percentile(addRowCounts, 95);

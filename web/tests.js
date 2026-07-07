@@ -78,7 +78,7 @@ for (var lvl = 0; lvl < 11; lvl++) {
 
 /* ── solver tests ── */
 console.log('\n[solver]');
-var solvable = generateLevel1Board();
+var solvable = getBoardWithValidation(0);
 var cfg1 = getLevelConfig(0);
 assert('L1 hand-crafted board is solvable', isBoardSolvableWithAddRowsLimit(solvable, cfg1, 1));
 var unsolvable = Array.from({length:27}, function(_,i){ return {v: i%9+1, m:false}; });
