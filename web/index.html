@@ -359,12 +359,7 @@ function doHint(){
     setTimeout(function(){ ge('bAdd').style.boxShadow=''; },1200);
     return;
   }
-  /* Find pair with largest index gap — the hardest to spot */
-  var best=pairs[0], bg=Math.abs(best[1]-best[0]);
-  for(var i=1;i<pairs.length;i++){
-    var g=Math.abs(pairs[i][1]-pairs[i][0]);
-    if(g>bg){ bg=g; best=pairs[i]; }
-  }
+  var best=pairs[0];
   G.hA=best[0]; G.hB=best[1]; hApply();
   var sa=G.hA, sb=G.hB;
   setTimeout(function(){ if(G.hA===sa&&G.hB===sb){hClear();G.hA=-1;G.hB=-1;} },2500);
