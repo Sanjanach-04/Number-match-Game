@@ -5,10 +5,9 @@ interface Cell {
   m: boolean;
 }
 
-function isBoardSolvableWithAddRows(board: Cell[], cfg: LevelConfig): boolean {
+function isBoardSolvableWithAddRowsLimit(board: Cell[], cfg: LevelConfig, maxAR: number): boolean {
   var sim = board.map(function(c){ return {v: c.v, m: c.m}; });
   var arUsed = 0;
-  var maxAR = 6;
   var dryP = 0;
   
   for (var pass = 0; pass < 200; pass++) {
@@ -57,14 +56,9 @@ function validateBoard(board: Cell[], cfg: LevelConfig, lvlIndex: number): { val
     return { valid: false, reason: 'No initial valid match exists' };
   }
   
-  if (lvlIndex === 0) {
-    if (!isBoardSolvable(board)) {
-      return { valid: false, reason: 'Level 1 board is not solvable directly' };
-    }
-  } else {
-    if (!isBoardSolvableWithAddRows(board, cfg)) {
-      return { valid: false, reason: 'Board is not solvable with Add Row limit' };
-    }
+  var limit = (lvlIndex === 0) ? 1 : 6;
+  if (!isBoardSolvableWithAddRowsLimit(board, cfg, limit)) {
+    return { valid: false, reason: 'Board is not solvable within Add Row limit of ' + limit };
   }
   return { valid: true, reason: 'OK' };
 }
@@ -103,7 +97,7 @@ function seedBoard(lvlIndex: number): any {
 }
 
 // Global exports
-(globalThis as any).isBoardSolvableWithAddRows = isBoardSolvableWithAddRows;
+(globalThis as any).isBoardSolvableWithAddRowsLimit = isBoardSolvableWithAddRowsLimit;
 (globalThis as any).validateBoard = validateBoard;
 (globalThis as any).getBoardWithValidation = getBoardWithValidation;
 (globalThis as any).seedBoard = seedBoard;

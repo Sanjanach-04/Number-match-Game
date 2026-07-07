@@ -51,7 +51,7 @@ public class BoardSeeder {
             candidateBoard = transformBoardValues(candidateBoard, transformRng);
             candidateBoard = transformBoardSpatial(candidateBoard, transformRng);
             
-            if (isSolvableWithAddRows(candidateBoard, config)) {
+            if (isSolvableWithAddRows(candidateBoard, config, 6)) {
                 board = candidateBoard;
                 break;
             }
@@ -190,9 +190,10 @@ public class BoardSeeder {
     // Solvability check with Add Rows (greedy simulation)
     // ─────────────────────────────────────────────────────────────
 
-    private static boolean isSolvableWithAddRows(Board board, DifficultyConfig config) {
+    private static boolean isSolvableWithAddRows(Board board, DifficultyConfig config, int maxAR) {
         Board simBoard = copyBoard(board);
         AddRowEngine engine = new AddRowEngine(config);
+        int arUsed = 0;
 
         for (int pass = 0; pass < 200; pass++) {
             for (int mPass = 0; mPass < simBoard.getTotalCells() + 5; mPass++) {
@@ -209,7 +210,7 @@ public class BoardSeeder {
                 return true;
             }
 
-            if (engine.isExhausted()) {
+            if (arUsed >= maxAR || engine.isExhausted()) {
                 return false;
             }
 
@@ -218,6 +219,7 @@ public class BoardSeeder {
                 return false;
             }
             simBoard.addRow(nextRow);
+            arUsed++;
         }
         return false;
     }

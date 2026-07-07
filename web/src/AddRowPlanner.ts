@@ -7,39 +7,29 @@ interface Cell {
 
 // Generate next row values using difficulty settings and board analysis.
 function planNextRow(board: Cell[], cfg: LevelConfig, rng: any): number[] {
-  // 1. Gather all active cells
+  // 1. Gather all active cells and identify stranded ones (no current match partner)
+  var matchedIndices: { [key: number]: boolean } = {};
+  var matches = findAllMatches(board);
+  for (var i = 0; i < matches.length; i++) {
+    matchedIndices[matches[i][0]] = true;
+    matchedIndices[matches[i][1]] = true;
+  }
+
   var activeCells: { idx: number; v: number }[] = [];
-  var activeFreq: { [key: number]: number } = {};
+  var strandedVals: number[] = [];
   for (var i = 0; i < board.length; i++) {
     if (!board[i].m) {
-      var v = board[i].v;
-      activeCells.push({ idx: i, v: v });
-      activeFreq[v] = (activeFreq[v] || 0) + 1;
+      activeCells.push({ idx: i, v: board[i].v });
+      if (!matchedIndices[i]) {
+        strandedVals.push(board[i].v);
+      }
     }
   }
 
-  // 2. Identify orphans and calculate missing complements
+  // 2. Generate complements for all stranded cells
   var required: number[] = [];
-  for (var d = 1; d <= 4; d++) {
-    var partner = 10 - d;
-    var countD = activeFreq[d] || 0;
-    var countP = activeFreq[partner] || 0;
-    if (countD > countP) {
-      var diff = countD - countP;
-      for (var k = 0; k < diff; k++) {
-        required.push(partner);
-      }
-    } else if (countP > countD) {
-      var diff = countP - countD;
-      for (var k = 0; k < diff; k++) {
-        required.push(d);
-      }
-    }
-  }
-  // For 5: count must be even
-  var count5 = activeFreq[5] || 0;
-  if (count5 % 2 !== 0) {
-    required.push(5);
+  for (var i = 0; i < strandedVals.length; i++) {
+    required.push(comp(strandedVals[i]));
   }
 
   // 3. If required is empty but board is not solvable (or has no matches), force an injection

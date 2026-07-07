@@ -73,35 +73,29 @@ public class AddRowEngine {
     // ─────────────────────────────────────────────────────────────
 
     private int[] planNextRow(Board board, SeededRandom activeRng) {
-        // 1. Gather all active cells and count frequencies
+        // 1. Gather all active cells and identify stranded ones (no current match partner)
         List<Cell> activeCells = board.getActiveCells();
-        Map<Integer, Integer> activeFreq = new HashMap<>();
-        for (Cell cell : activeCells) {
-            activeFreq.put(cell.value, activeFreq.getOrDefault(cell.value, 0) + 1);
+        List<int[]> matches = board.findAllValidMatches();
+        boolean[] matchedIndex = new boolean[board.getTotalCells()];
+        for (int[] match : matches) {
+            matchedIndex[match[0]] = true;
+            matchedIndex[match[1]] = true;
         }
 
-        // 2. Identify orphans and calculate missing complements
-        List<Integer> required = new ArrayList<>();
-        for (int d = 1; d <= 4; d++) {
-            int partner = 10 - d;
-            int countD = activeFreq.getOrDefault(d, 0);
-            int countP = activeFreq.getOrDefault(partner, 0);
-            if (countD > countP) {
-                int diff = countD - countP;
-                for (int k = 0; k < diff; k++) {
-                    required.add(partner);
-                }
-            } else if (countP > countD) {
-                int diff = countP - countD;
-                for (int k = 0; k < diff; k++) {
-                    required.add(d);
+        List<Integer> strandedVals = new ArrayList<>();
+        for (int i = 0; i < board.getTotalCells(); i++) {
+            Cell cell = board.getCellByIndex(i);
+            if (cell != null && !cell.isMatched()) {
+                if (!matchedIndex[i]) {
+                    strandedVals.add(cell.value);
                 }
             }
         }
 
-        int count5 = activeFreq.getOrDefault(5, 0);
-        if (count5 % 2 != 0) {
-            required.add(5);
+        // 2. Generate complements for all stranded cells
+        List<Integer> required = new ArrayList<>();
+        for (int val : strandedVals) {
+            required.add(getCompVal(val));
         }
 
         // 3. If required is empty but board is not solvable or has no matches, force an injection

@@ -52,17 +52,17 @@ public class DifficultyConfig {
      */
     public static DifficultyConfig forLevel(int level) {
         switch (level) {
-            case 1:  return new DifficultyConfig(1,  1000003L, 0.90f, 0.00f, 0.00f, 1,  45,  1, 3,  0.00f);
-            case 2:  return new DifficultyConfig(2,  1000033L, 0.82f, 0.08f, 0.10f, 2,  60,  2, 4,  0.05f);
-            case 3:  return new DifficultyConfig(3,  1000037L, 0.70f, 0.18f, 0.25f, 2,  90,  3, 6,  0.15f);
-            case 4:  return new DifficultyConfig(4,  1000039L, 0.60f, 0.28f, 0.38f, 3, 120,  4, 9,  0.25f);
-            case 5:  return new DifficultyConfig(5,  1000081L, 0.48f, 0.42f, 0.50f, 3, 150,  6, 14, 0.40f);
-            case 6:  return new DifficultyConfig(6,  1000099L, 0.70f, 0.18f, 0.25f, 3,  90,  3, 6,  0.15f); // RELIEF
-            case 7:  return new DifficultyConfig(7,  1000117L, 0.54f, 0.36f, 0.45f, 4, 120,  5, 12, 0.35f);
-            case 8:  return new DifficultyConfig(8,  1000121L, 0.44f, 0.48f, 0.58f, 4, 150,  7, 16, 0.46f);
-            case 9:  return new DifficultyConfig(9,  1000133L, 0.40f, 0.58f, 0.68f, 5, 180,  8, 18, 0.54f);
-            case 10: return new DifficultyConfig(10, 1000151L, 0.35f, 0.68f, 0.78f, 5, 210,  9, 22, 0.63f);
-            case 11: return new DifficultyConfig(11, 1000159L, 0.70f, 0.18f, 0.25f, 3,  90,  3, 6,  0.15f); // RELIEF
+            case 1:  return new DifficultyConfig(1,  1000003L, 0.70f, 0.00f, 0.00f, 1,  45,  1, 3,  0.00f);
+            case 2:  return new DifficultyConfig(2,  1000033L, 0.60f, 0.08f, 0.12f, 1,  65,  2, 4,  0.08f);
+            case 3:  return new DifficultyConfig(3,  1000037L, 0.50f, 0.18f, 0.25f, 2,  90,  3, 6,  0.18f);
+            case 4:  return new DifficultyConfig(4,  1000039L, 0.45f, 0.28f, 0.38f, 2, 120,  4, 10, 0.28f);
+            case 5:  return new DifficultyConfig(5,  1000081L, 0.40f, 0.42f, 0.50f, 3, 150,  6, 14, 0.42f);
+            case 6:  return new DifficultyConfig(6,  1000099L, 0.50f, 0.18f, 0.25f, 3,  90,  3, 6,  0.18f); // RELIEF
+            case 7:  return new DifficultyConfig(7,  1000117L, 0.45f, 0.36f, 0.40f, 3, 120,  4, 10, 0.30f);
+            case 8:  return new DifficultyConfig(8,  1000121L, 0.40f, 0.48f, 0.52f, 3, 150,  6, 14, 0.44f);
+            case 9:  return new DifficultyConfig(9,  1000133L, 0.35f, 0.58f, 0.64f, 4, 180,  8, 18, 0.56f);
+            case 10: return new DifficultyConfig(10, 1000151L, 0.30f, 0.68f, 0.75f, 4, 210,  9, 22, 0.65f);
+            case 11: return new DifficultyConfig(11, 1000159L, 0.50f, 0.18f, 0.25f, 3,  90,  3, 6,  0.18f); // RELIEF
             default:
                 int baseLvl = 2 + ((level - 2) % 10);
                 DifficultyConfig base = forLevel(baseLvl);
