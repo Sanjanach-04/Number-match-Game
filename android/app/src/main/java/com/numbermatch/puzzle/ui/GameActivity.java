@@ -36,6 +36,7 @@ public class GameActivity extends AppCompatActivity implements GameEngine.GameEv
     private Button btnAddRow, btnNewGame;
 
     private int matchCount = 0;
+    private boolean isScanning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +90,7 @@ public class GameActivity extends AppCompatActivity implements GameEngine.GameEv
     // ─────────────────────────────────────────────────────────────
 
     private void onCellTapped(int cellIndex) {
+        if (isScanning) return;
         MatchResult result = engine.onCellTapped(cellIndex);
 
         switch (result.type) {
@@ -124,11 +126,35 @@ public class GameActivity extends AppCompatActivity implements GameEngine.GameEv
     }
 
     private void onAddRowClicked() {
-        if (engine.getState() != GameEngine.GameState.PLAYING) return;
+        if (engine.getState() != GameEngine.GameState.PLAYING || isScanning) return;
 
+        isScanning = true;
+        btnAddRow.setEnabled(false);
+        btnAddRow.setText("Scanning...");
+        showStatus("Scanning board for matches...", 500);
+
+        btnAddRow.postDelayed(() -> {
+            isScanning = false;
+            updateAddRowButton();
+
+            if (engine.getBoard().hasAnyValidMatch()) {
+                new AlertDialog.Builder(GameActivity.this)
+                        .setTitle("Matches Available!")
+                        .setMessage("Valid matches still exist. Are you sure you want to add a new row?")
+                        .setPositiveButton("Yes, Add Row", (dialog, which) -> performAddRow(true))
+                        .setNegativeButton("No, Keep Looking", null)
+                        .setCancelable(false)
+                        .show();
+            } else {
+                performAddRow(false);
+            }
+        }, 500);
+    }
+
+    private void performAddRow(boolean force) {
         boolean wasRescue = engine.isAddRowInRescueMode();
 
-        AddRowResult result = engine.onAddRow();
+        AddRowResult result = engine.onAddRow(force);
         if (!result.success) {
             showStatus("No Add Rows remaining!", 2000);
             return;
@@ -189,6 +215,7 @@ public class GameActivity extends AppCompatActivity implements GameEngine.GameEv
         tvAddRowCount.setText("+ Row: " + remaining);
         btnAddRow.setEnabled(remaining > 0 && engine.getState() == GameEngine.GameState.PLAYING);
         btnAddRow.setAlpha(remaining > 0 ? 1.0f : 0.4f);
+        btnAddRow.setText("+ Add Row");
     }
 
     private void updateMatchCount() {

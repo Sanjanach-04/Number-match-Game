@@ -56,7 +56,7 @@ assert('first pair is in reading order (i < j)', allPairs[0][0] < allPairs[0][1]
 /* ── boardGenerator tests ── */
 console.log('\n[boardGenerator]');
 var l1 = generateLevel1Board();
-assert('L1 board has 27 cells', l1.length === 27);
+assert('L1 board has 9 cells', l1.length === 9);
 assert('L1 board has initial match', hasAnyMatch(l1));
 for (var lvl = 1; lvl < 11; lvl++) {
   var cfg = getLevelConfig(lvl);

@@ -51,6 +51,8 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-c
 .sa::-webkit-scrollbar{width:3px}
 .sa::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
 #grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.grid-scanning .cell:not(.cm){animation:scan-pulse 0.3s ease-in-out infinite alternate!important}
+@keyframes scan-pulse{from{border-color:#e2e8f0}to{border-color:#2563eb;box-shadow:0 0 6px rgba(37,99,235,0.25)}}
 .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:clamp(12px,4vw,17px);font-weight:900;cursor:pointer;background:#ffffff;border:1.5px solid #e2e8f0;color:#1a1a2e;transition:background .1s,transform .08s,border-color .1s;user-select:none;box-shadow:0 2px 4px rgba(0,0,0,.04)}
 .cell:hover:not(.cm):not(.cs){border-color:#2563eb;background:#f1f5f9}
 .cell:active:not(.cm){transform:scale(.87)}
@@ -176,9 +178,9 @@ body{background:#f0f2f5;font-family:'Segoe UI',sans-serif;display:flex;justify-c
   <div class="ov-box">
     <div class="ov-ic">&#128269;</div>
     <div class="ov-ti" style="color:#e94560">Matches Available!</div>
-    <div class="ov-su">Valid matches still exist. Clear existing moves first.</div>
-    <button class="bp" id="bCN" style="width:100%">OK, Keep Looking</button>
-    <button id="bCY" style="display:none"></button>
+    <div class="ov-su">Valid matches still exist. Are you sure you want to add a new row?</div>
+    <button class="bp" id="bCY" style="width:100%; margin-bottom:8px">Yes, Add Row</button>
+    <button class="bs" id="bCN" style="width:100%">No, Keep Looking</button>
   </div>
 </div>
 </div>
@@ -301,8 +303,11 @@ function drawLinkLine(a, b) {
   }, 300);
 }
 
+var scanning = false;
+
 /* ── Tap / match ── */
 function tap(i){
+  if(scanning) return;
   if(G.board[i].m) return; hClear();
   if(G.sel<0){ G.sel=i; var e=gc(i); if(e)e.classList.add('cs'); sTap(); return; }
   if(G.sel===i){ var e=gc(G.sel); if(e)e.classList.remove('cs'); G.sel=-1; return; }
@@ -380,12 +385,31 @@ function hClear(){
    Returns {board, val, wasRescue}; board has 9 new cells appended.
 ── */
 function doAdd(){
-  if(G.arUsed>=MAXAR){ return; }
-  /* If matches still exist, confirm intent */
-  if(hasAnyMatch(G.board)){
-    sov('oConfirm'); return;
-  }
-  doAddActual();
+  if(G.arUsed>=MAXAR || scanning){ return; }
+  scanning = true;
+  hClear(); G.hA=-1; G.hB=-1;
+  var btn = ge('bAdd');
+  var left = MAXAR-G.arUsed;
+  btn.textContent = '🔍 Scanning...';
+  btn.disabled = true;
+  ge('hFic').style.pointerEvents = 'none';
+  ge('bRst').style.pointerEvents = 'none';
+  ge('grid').classList.add('grid-scanning');
+  
+  setTimeout(function(){
+    scanning = false;
+    btn.disabled = (G.arUsed>=MAXAR);
+    btn.textContent = '＋ Add Number ('+left+')';
+    ge('hFic').style.pointerEvents = 'auto';
+    ge('bRst').style.pointerEvents = 'auto';
+    ge('grid').classList.remove('grid-scanning');
+    
+    if(hasAnyMatch(G.board)){
+      sov('oConfirm');
+    } else {
+      doAddActual();
+    }
+  }, 600);
 }
 function doAddActual(){
   if(G.arUsed>=MAXAR){ return; }

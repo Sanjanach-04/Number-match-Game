@@ -110,8 +110,9 @@ var MIN_REQUIRED_ADD_ROWS: number[] = [
 ];
 
 function validateBoard(board: Cell[], cfg: LevelConfig, lvlIndex: number): { valid: boolean; reason: string } {
-  if (!board || board.length !== 27) {
-    return { valid: false, reason: 'Board must have exactly 27 cells (3×9)' };
+  var expectedSize = (lvlIndex === 0) ? 9 : 27;
+  if (!board || board.length !== expectedSize) {
+    return { valid: false, reason: 'Board must have exactly ' + expectedSize + ' cells' };
   }
   for (var i = 0; i < board.length; i++) {
     if (board[i].v < 1 || board[i].v > 9) {
@@ -180,9 +181,13 @@ function seedBoard(lvlIndex: number): any {
   var b = new Board();
   var cells = getBoardWithValidation(lvlIndex - 1);
   var vals = cells.map(function(c) { return c.v; });
-  b.addRow(vals.slice(0, 9));
-  b.addRow(vals.slice(9, 18));
-  b.addRow(vals.slice(18, 27));
+  if (lvlIndex === 1) {
+    b.addRow(vals);
+  } else {
+    b.addRow(vals.slice(0, 9));
+    b.addRow(vals.slice(9, 18));
+    b.addRow(vals.slice(18, 27));
+  }
   return b;
 }
 

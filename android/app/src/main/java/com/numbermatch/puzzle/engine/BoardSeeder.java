@@ -292,7 +292,13 @@ public class BoardSeeder {
         
         // Put the first matching pair at index 0 and 1 to guarantee at least one initial match
         int idxA = vals.indexOf(first);
-        int idxB = vals.indexOf(first, idxA + 1);
+        int idxB = -1;
+        for (int i = idxA + 1; i < vals.size(); i++) {
+            if (vals.get(i).equals(first)) {
+                idxB = i;
+                break;
+            }
+        }
         if (idxA >= 0 && idxB >= 0) {
             int tmp = vals.get(0); vals.set(0, vals.get(idxA)); vals.set(idxA, tmp);
             int tmp2 = vals.get(1); vals.set(1, vals.get(idxB)); vals.set(idxB, tmp2);

@@ -90,9 +90,13 @@ public class GameEngine {
      * Called when the player taps the (+) Add Row button.
      */
     public AddRowResult onAddRow() {
+        return onAddRow(false);
+    }
+
+    public AddRowResult onAddRow(boolean force) {
         if (state != GameState.PLAYING) return AddRowResult.failed("Game not in PLAYING state");
         if (addRowEngine.isExhausted()) return AddRowResult.failed("No Add Row uses remaining");
-        if (board.hasAnyValidMatch()) {
+        if (!force && board.hasAnyValidMatch()) {
             return AddRowResult.failed("Valid matches still exist. Clear existing moves first.");
         }
 
