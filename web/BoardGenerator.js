@@ -1,14 +1,30 @@
 "use strict";
-// BoardGenerator.ts - Solvable initial board generation with difficulty targets (v3 sync)
-// Pair pools
+// BoardGenerator.ts - Deterministic Board Generation with Structural Difficulty (v4)
+//
+// Architecture:
+//   Phase 1: Determine pair mix (immediate + buried + decoy count)
+//   Phase 2: Place pairs strategically by distance target
+//   Phase 3: Fill remaining with effective decoys (no accidental matches)
+//   Phase 4: Validate with tight tolerance on multiple metrics
+//
+// Note: Cell interface, valuesMatch, canMatch, findAllMatches, hasAnyMatch
+// are all declared in BoardAnalyzer.ts which compiles first.
+// ─── Pair Pools ───────────────────────────────────────────────────────────────
 var SAME_VAL_PAIRS = [
     [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8], [9, 9]
 ];
 var SUM_TEN_PAIRS = [
     [1, 9], [9, 1], [2, 8], [8, 2], [3, 7], [7, 3], [4, 6], [6, 4]
 ];
+// Complement helper (for decoy validation)
+function complement(v) {
+    return v === 5 ? 5 : (10 - v);
+}
+// ─── Phase 1: Build pair pool ─────────────────────────────────────────────────
+// Selects pairs according to frictionFactor (0 = all same-value, 1 = all sum-10)
 function buildPairPool(pairCount, frictionFactor, rng) {
     var pairs = [];
+    // Always start with at least one guaranteed same-value pair so there's an obvious match
     pairs.push(SAME_VAL_PAIRS[rng.int(SAME_VAL_PAIRS.length)].slice());
     for (var p = 1; p < pairCount; p++) {
         var useSumTen = rng.bool(frictionFactor);
@@ -21,152 +37,239 @@ function buildPairPool(pairCount, frictionFactor, rng) {
     }
     return pairs;
 }
-function getPairValues(pairs) {
-    var vals = {};
-    for (var i = 0; i < pairs.length; i++) {
-        vals[pairs[i][0]] = true;
-        vals[pairs[i][1]] = true;
-    }
-    return vals;
-}
-function pickTrueDecoy(pairVals, rng) {
-    var candidates = [];
-    for (var v = 1; v <= 9; v++) {
-        var complement = v === 5 ? 5 : (10 - v);
-        if (!pairVals[v] && !pairVals[complement]) {
-            candidates.push(v);
-        }
-    }
-    if (candidates.length > 0) {
-        return candidates[rng.int(candidates.length)];
-    }
-    // Fallback
-    var freq = {};
-    for (var v2 = 1; v2 <= 9; v2++)
-        freq[v2] = 0;
-    for (var k in pairVals) {
-        if (pairVals.hasOwnProperty(k))
-            freq[+k]++;
-    }
-    var rare = [];
-    for (var v3 = 1; v3 <= 9; v3++) {
-        if (freq[v3] <= 1)
-            rare.push(v3);
-    }
-    if (rare.length > 0)
-        return rare[rng.int(rare.length)];
-    return rng.range(1, 9);
-}
-function placePairsWithGap(pairs, minGap, maxGap, rng) {
+// ─── Phase 2: Strategic pair placement ────────────────────────────────────────
+// immediatePairs → short gap (minGap .. shortGapMax), clear path guaranteed
+// buriedPairs    → long gap (longGapMin .. maxGap), at least one blocker slot between
+function placePairsStrategically(immediatePairs, buriedPairs, minGap, maxGap, rng) {
     var CELLS = 27;
     var slots = new Array(CELLS).fill(null);
     var free = [];
     for (var i = 0; i < CELLS; i++)
         free.push(i);
     function shuffleFree() { rng.shuffle(free); }
-    slots[0] = pairs[0][0];
-    slots[1] = pairs[0][1];
-    free.splice(free.indexOf(0), 1);
-    free.splice(free.indexOf(1), 1);
-    for (var p = 1; p < pairs.length; p++) {
+    // Helper: find two free slots with gap in [lo, hi]
+    function placePairWithGap(pair, gapLo, gapHi) {
         shuffleFree();
-        var placed = false;
-        for (var ai = 0; ai < free.length && !placed; ai++) {
+        for (var ai = 0; ai < free.length; ai++) {
             var slotA = free[ai];
-            for (var bi = 0; bi < free.length && !placed; bi++) {
+            for (var bi = 0; bi < free.length; bi++) {
                 if (bi === ai)
                     continue;
                 var slotB = free[bi];
                 var gap = Math.abs(slotA - slotB);
-                if (gap >= minGap && gap <= maxGap) {
-                    slots[slotA] = pairs[p][0];
-                    slots[slotB] = pairs[p][1];
+                if (gap >= gapLo && gap <= gapHi) {
+                    slots[slotA] = pair[0];
+                    slots[slotB] = pair[1];
                     free.splice(free.indexOf(slotA), 1);
                     free.splice(free.indexOf(slotB), 1);
-                    placed = true;
+                    return true;
                 }
             }
         }
-        if (!placed) {
-            shuffleFree();
-            if (free.length >= 2) {
-                var fa = free.shift();
-                var fb = free.shift();
-                slots[fa] = pairs[p][0];
-                slots[fb] = pairs[p][1];
+        return false;
+    }
+    // Immediate pairs: short gap so the path between them is likely clear
+    var shortGapMax = Math.max(minGap + 2, Math.floor(maxGap * 0.4));
+    // First pair always at slots 0,1 to guarantee an initial match
+    if (immediatePairs.length > 0) {
+        var fp = immediatePairs[0];
+        slots[0] = fp[0];
+        slots[1] = fp[1];
+        free.splice(free.indexOf(0), 1);
+        free.splice(free.indexOf(1), 1);
+        for (var p = 1; p < immediatePairs.length; p++) {
+            if (!placePairWithGap(immediatePairs[p], minGap, shortGapMax)) {
+                // fallback: any gap
+                if (!placePairWithGap(immediatePairs[p], 1, maxGap)) {
+                    shuffleFree();
+                    if (free.length >= 2) {
+                        var fa = free.shift();
+                        var fb = free.shift();
+                        slots[fa] = immediatePairs[p][0];
+                        slots[fb] = immediatePairs[p][1];
+                    }
+                }
+            }
+        }
+    }
+    // Buried pairs: long gap — harder to see and path is likely blocked by decoys
+    var longGapMin = Math.max(minGap, Math.floor(maxGap * 0.5));
+    for (var p = 0; p < buriedPairs.length; p++) {
+        if (!placePairWithGap(buriedPairs[p], longGapMin, maxGap)) {
+            // Fallback to any gap if long gap can't be satisfied
+            if (!placePairWithGap(buriedPairs[p], minGap, maxGap)) {
+                shuffleFree();
+                if (free.length >= 2) {
+                    var fa2 = free.shift();
+                    var fb2 = free.shift();
+                    slots[fa2] = buriedPairs[p][0];
+                    slots[fb2] = buriedPairs[p][1];
+                }
             }
         }
     }
     return { slots: slots, free: free };
 }
-// Evaluate board for solvability, immediate match density, and average scan distance
-function evaluateBoard(board, cfg) {
-    var solvable = isBoardSolvable(board);
-    if (!solvable) {
-        return { solvable: false, matchDensity: 0, avgScanDist: 0 };
+// ─── Phase 3: Effective decoy selection ───────────────────────────────────────
+// A "true" decoy is a value where neither it NOR its complement appears in any pair.
+// This ensures decoys don't accidentally create new matches.
+function buildDecoyPool(pairVals, rng) {
+    var trulyIsolated = [];
+    for (var v = 1; v <= 9; v++) {
+        var comp = complement(v);
+        if (!pairVals.has(v) && !pairVals.has(comp)) {
+            trulyIsolated.push(v);
+        }
     }
-    var startMatches = findAllMatches(board);
-    var cellMatched = new Array(board.length).fill(false);
-    var distSum = 0;
-    for (var i = 0; i < startMatches.length; i++) {
-        var pair = startMatches[i];
-        cellMatched[pair[0]] = true;
-        cellMatched[pair[1]] = true;
-        distSum += (pair[1] - pair[0]);
+    if (trulyIsolated.length > 0)
+        return trulyIsolated;
+    // Partial isolation: value not in pairs (complement might be)
+    var partialIsolated = [];
+    for (var v2 = 1; v2 <= 9; v2++) {
+        if (!pairVals.has(v2)) {
+            partialIsolated.push(v2);
+        }
+    }
+    if (partialIsolated.length > 0)
+        return partialIsolated;
+    // Last resort: least common values in pair pool
+    return [5]; // 5+5=10 and 5=5, always some match possible, but rare
+}
+function pickDecoy(decoyPool, usedDecoys, rng) {
+    // Prefer a decoy that hasn't been used too much (avoid repetition)
+    var freq = {};
+    for (var _i = 0, usedDecoys_1 = usedDecoys; _i < usedDecoys_1.length; _i++) {
+        var d = usedDecoys_1[_i];
+        freq[d] = (freq[d] || 0) + 1;
+    }
+    var minFreq = Infinity;
+    for (var _a = 0, decoyPool_1 = decoyPool; _a < decoyPool_1.length; _a++) {
+        var v = decoyPool_1[_a];
+        minFreq = Math.min(minFreq, freq[v] || 0);
+    }
+    var candidates = decoyPool.filter(function (v) { return (freq[v] || 0) === minFreq; });
+    return candidates[rng.int(candidates.length)];
+}
+// ─── Phase 4: Multi-dimensional board metrics ─────────────────────────────────
+function computeBoardMetrics(board) {
+    if (!isBoardSolvable(board)) {
+        return { solvable: false, immediateMatchRatio: 0, avgMatchGap: 0, buriedCount: 0, accidentalDecoyMatches: 0 };
+    }
+    var allMatches = findAllMatches(board);
+    var cellInMatch = new Set();
+    var gapSum = 0;
+    for (var _i = 0, allMatches_1 = allMatches; _i < allMatches_1.length; _i++) {
+        var pair = allMatches_1[_i];
+        cellInMatch.add(pair[0]);
+        cellInMatch.add(pair[1]);
+        gapSum += (pair[1] - pair[0]);
     }
     var activeCount = 0;
     var matchedCount = 0;
     for (var i = 0; i < board.length; i++) {
         if (!board[i].m) {
             activeCount++;
-            if (cellMatched[i])
+            if (cellInMatch.has(i))
                 matchedCount++;
         }
     }
-    var density = activeCount > 0 ? (matchedCount / activeCount) : 0;
-    var avgScan = startMatches.length > 0 ? (distSum / startMatches.length) : 0;
+    var immediateMatchRatio = activeCount > 0 ? (matchedCount / activeCount) : 0;
+    var avgMatchGap = allMatches.length > 0 ? (gapSum / allMatches.length) : 0;
+    // Count buried pairs: pairs where the path is currently blocked
+    var buriedCount = 0;
+    // A simple heuristic: cells with no immediate match are candidates for buried pairs
+    // We count how many active cells are NOT in any match
+    var buriedCells = activeCount - matchedCount;
+    buriedCount = Math.floor(buriedCells / 2); // each buried pair contributes 2 cells
+    // Count accidental decoy matches (matches between cells that weren't intended as pairs)
+    // Approximated as total immediate matches minus the intended pair count
+    var accidentalDecoyMatches = Math.max(0, allMatches.length - matchedCount / 2);
     return {
         solvable: true,
-        matchDensity: density,
-        avgScanDist: avgScan
+        immediateMatchRatio: immediateMatchRatio,
+        avgMatchGap: avgMatchGap,
+        buriedCount: buriedCount,
+        accidentalDecoyMatches: accidentalDecoyMatches
     };
 }
-// Main board generation function
+// ─── Main Board Generator ─────────────────────────────────────────────────────
 function generateBoard(cfg, attempt) {
     var seed = (cfg.seed + (attempt || 0) * 7919) >>> 0;
-    var rng = new RNG(seed);
     var minGap = cfg.minGap || 1;
     var maxGap = cfg.maxGap || 10;
     var frictionFactor = cfg.frictionFactor || 0;
-    var matchDensity = cfg.matchDensity || 0.70;
-    var pairCount = Math.max(3, Math.min(13, Math.floor(27 * matchDensity / 2)));
-    for (var searchAttempt = 0; searchAttempt < 25; searchAttempt++) {
+    var targetImmediate = cfg.targetImmediateRatio || 0.70;
+    var targetAvgGap = cfg.targetAvgGap || 4;
+    var buriedPairCount = cfg.buriedPairCount || 0;
+    var tolerance = cfg.strictMatchDensityTolerance || 0.15;
+    // Calculate target pair counts from 27 active cells
+    var totalCells = 27;
+    var immediateTargetCells = Math.round(totalCells * targetImmediate);
+    var immediatePairCount = Math.max(1, Math.round(immediateTargetCells / 2));
+    var buriedPairCountFinal = Math.min(buriedPairCount, 4); // cap at 4 for solvability
+    var totalPairs = immediatePairCount + buriedPairCountFinal;
+    totalPairs = Math.min(13, totalPairs); // 13 pairs × 2 = 26, + 1 decoy = 27
+    for (var searchAttempt = 0; searchAttempt < 50; searchAttempt++) {
         var searchSeed = (seed + searchAttempt * 997) >>> 0;
         var searchRng = new RNG(searchSeed);
-        var pairs = buildPairPool(pairCount, frictionFactor, searchRng);
-        var placement = placePairsWithGap(pairs, minGap, maxGap, searchRng);
+        // Build pair pools
+        var allPairs = buildPairPool(totalPairs, frictionFactor, searchRng);
+        var immediates = allPairs.slice(0, immediatePairCount);
+        var burieds = allPairs.slice(immediatePairCount, immediatePairCount + buriedPairCountFinal);
+        // Strategic placement
+        var placement = placePairsStrategically(immediates, burieds, minGap, maxGap, searchRng);
         var slots = placement.slots;
         var freeSlots = placement.free;
-        var pairVals = getPairValues(pairs);
-        for (var fi = 0; fi < freeSlots.length; fi++) {
-            slots[freeSlots[fi]] = pickTrueDecoy(pairVals, searchRng);
+        // Build decoy pool from pair values
+        var pairValSet = new Set();
+        for (var _i = 0, allPairs_1 = allPairs; _i < allPairs_1.length; _i++) {
+            var pair = allPairs_1[_i];
+            pairValSet.add(pair[0]);
+            pairValSet.add(pair[1]);
         }
+        var decoyPool = buildDecoyPool(pairValSet, searchRng);
+        var usedDecoys = [];
+        // Fill free slots with effective decoys
+        for (var fi = 0; fi < freeSlots.length; fi++) {
+            var d = pickDecoy(decoyPool, usedDecoys, searchRng);
+            slots[freeSlots[fi]] = d;
+            usedDecoys.push(d);
+        }
+        // Assemble board
         var vals = [];
         for (var i = 0; i < 27; i++) {
             vals.push(slots[i] !== null ? slots[i] : searchRng.range(1, 9));
         }
         var board = vals.map(function (v) { return { v: v, m: false }; });
+        // Quick checks
         if (!hasAnyMatch(board))
             continue;
         if (!isBoardSolvable(board))
             continue;
-        var report = evaluateBoard(board, cfg);
-        if (Math.abs(report.matchDensity - matchDensity) <= 0.28) {
+        // Compute multi-dimensional metrics
+        var metrics = computeBoardMetrics(board);
+        if (!metrics.solvable)
+            continue;
+        // Validate against targets with tight tolerance
+        var immediateOk = Math.abs(metrics.immediateMatchRatio - targetImmediate) <= tolerance;
+        var gapOk = targetAvgGap <= 3
+            ? metrics.avgMatchGap <= targetAvgGap + 3 // easy levels: gap should be SHORT
+            : metrics.avgMatchGap >= targetAvgGap * 0.4; // hard levels: gap should be LONG enough
+        if (immediateOk && gapOk) {
             return board;
+        }
+        // Progressive tolerance relaxation after 30 attempts
+        if (searchAttempt >= 30) {
+            var looseTolerance = tolerance + 0.08;
+            var looseImmediateOk = Math.abs(metrics.immediateMatchRatio - targetImmediate) <= looseTolerance;
+            if (looseImmediateOk && metrics.solvable) {
+                return board;
+            }
         }
     }
     return generateFallbackBoard(cfg, seed);
 }
+// ─── Fallback Board ────────────────────────────────────────────────────────────
 function generateFallbackBoard(cfg, seed) {
     var fbRng = new RNG((seed + 12345) >>> 0);
     var vals = [];
@@ -192,11 +295,14 @@ function generateFallbackBoard(cfg, seed) {
     }
     return vals.map(function (v) { return { v: v, m: false }; });
 }
+// ─── Level 1 Hand-crafted Templates ──────────────────────────────────────────
+// Level 1 uses curated templates for a perfectly gentle onboarding experience
 var LEVEL_1_TEMPLATES = [
-    [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5],
-    [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6],
-    [3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7],
-    [4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8]
+    [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
+    [3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2],
+    [4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3],
+    [5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4],
 ];
 function transformBoardValues(board, rng) {
     var pairs = [[1, 9], [2, 8], [3, 7], [4, 6]];
@@ -228,7 +334,7 @@ function transformBoardSpatial(board, rng) {
     }
     return board;
 }
-// Hand-crafted Level 1 board with transformations
+// Hand-crafted Level 1 board — guaranteed ultra-easy with adjacent pairs
 function generateLevel1Board(seed) {
     var s = seed !== undefined ? seed : Math.floor(Math.random() * 1000000);
     var rng = new RNG(s);
@@ -238,9 +344,18 @@ function generateLevel1Board(seed) {
     board = transformBoardSpatial(board, rng);
     return board;
 }
-// Helper used for legacy validation
+// Legacy helper
 function makeBoard(lvlIndex) {
     return getBoardWithValidation(lvlIndex);
+}
+// Compatibility: expose evaluateBoard using new metrics
+function evaluateBoard(board, cfg) {
+    var m = computeBoardMetrics(board);
+    return {
+        solvable: m.solvable,
+        matchDensity: m.immediateMatchRatio,
+        avgScanDist: m.avgMatchGap
+    };
 }
 // Global exports
 globalThis.evaluateBoard = evaluateBoard;
@@ -249,3 +364,4 @@ globalThis.generateLevel1Board = generateLevel1Board;
 globalThis.makeBoard = makeBoard;
 globalThis.transformBoardValues = transformBoardValues;
 globalThis.transformBoardSpatial = transformBoardSpatial;
+globalThis.computeBoardMetrics = computeBoardMetrics;
